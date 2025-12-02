@@ -110,7 +110,7 @@ export function ExtensionDetails({ extension, isActive = true }: ExtensionDetail
 
       {renderedReadme && (
         <box marginBottom={1} borderStyle="single" borderColor={ocTheme.border} padding={1} title="README">
-          <text content={t`${renderedReadme}`} />
+          <text content={t`${renderedReadme.split('\n').slice(readmeScrollOffset).join('\n')}`} />
           {(githubData?.readme?.split('\n').length || 0) > readmeScrollOffset + 15 && (
             <text content={t`${dim('... (more content below, use ↑↓ to scroll)')}`} />
           )}
