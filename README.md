@@ -107,9 +107,10 @@ Found a bug or have an idea?
 
 ## 📚 More About OpenCode
 
-- [OpenCode Main Project](https://github.com/opencode-org)
-- [Extension Repository](https://github.com/opencode-org/extensions)
-- [OpenCode Community](https://discord.gg/opencode)
+- [OpenCode Official Site](https://opencode.ai/)
+- [OpenCode GitHub](https://github.com/sst/opencode)
+- [OpenCode Documentation](https://opencode.ai/docs/)
+- [GitHub Discussions](https://github.com/sst/opencode/discussions)
 
 ---
 
