@@ -1,0 +1,20 @@
+{
+  "name": "opencode_community_extensions",
+  "module": "src/index.tsx",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun run --watch src/index.tsx"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@opentui/core": "^0.1.53",
+    "@opentui/react": "^0.1.53",
+    "react": "^19.1.1"
+  }
+}
