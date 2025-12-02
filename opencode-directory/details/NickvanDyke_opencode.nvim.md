@@ -1,0 +1,367 @@
+# NickvanDyke/opencode.nvim
+
+**Description:** Integrate the opencode AI assistant with Neovim — streamline editor-aware research, reviews, and requests.
+
+**Repository:** [https://github.com/NickvanDyke/opencode.nvim](https://github.com/NickvanDyke/opencode.nvim)
+
+**Author:** [NickvanDyke](https://github.com/NickvanDyke) (User)
+
+**Language:** Lua
+
+**License:** MIT License
+
+**Stars:** 1034 | **Forks:** 34
+
+**Created:** 7/12/2025 | **Updated:** 12/2/2025
+
+
+
+**Topics:** `ai-agents`, `ai-assistant`, `neovim`, `neovim-plugin`, `nvim`, `opencode`, `plugin`, `terminal`
+
+
+---
+
+## README
+
+# opencode.nvim
+
+Integrate the [opencode](https://github.com/sst/opencode) AI assistant with Neovim — streamline editor-aware research, reviews, and requests.
+
+<https://github.com/user-attachments/assets/01e4e2fc-bbfa-427e-b9dc-c1c1badaa90e>
+
+## ✨ Features
+
+- Auto-connects to _any_ `opencode` running inside Neovim's CWD, or provides an integrated instance.
+- Input prompts with completions, highlights, and normal-mode support.
+- Select prompts from a library and define your own.
+- Inject relevant editor context (buffer, cursor, selection, diagnostics, etc.).
+- Control `opencode` with commands.
+- Respond to `opencode` permission requests.
+- Reloads buffers edited by `opencode` in real-time.
+- Monitor `opencode`'s state via statusline component.
+- Forwards `opencode`'s Server-Sent-Events as autocmds for automation.
+- Sensible defaults with well-documented, flexible configuration and API to fit your workflow.
+
+## 📦 Setup
+
+> [!TIP]
+> Run `:checkhealth opencode` after setup.
+
+### [lazy.nvim](https://github.com/folke/lazy.nvim)
+
+```lua
+{
+  "NickvanDyke/opencode.nvim",
+  dependencies = {
+    -- Recommended for `ask()` and `select()`.
+    -- Required for `snacks` provider.
+    ---@module 'snacks' <- Loads `snacks.nvim` types for configuration intellisense.
+    { "folke/snacks.nvim", opts = { input = {}, picker = {}, terminal = {} } },
+  },
+  config = function()
+    ---@type opencode.Opts
+    vim.g.opencode_opts = {
+      -- Your configuration, if any — see `lua/opencode/config.lua`, or "goto definition".
+    }
+
+    -- Required for `opts.events.reload`.
+    vim.o.autoread = true
+
+    -- Recommended/example keymaps.
+    vim.keymap.set({ "n", "x" }, "<C-a>", function() require("opencode").ask("@this: ", { submit = true }) end, { desc = "Ask opencode" })
+    vim.keymap.set({ "n", "x" }, "<C-x>", function() require("opencode").select() end,                          { desc = "Execute opencode action…" })
+    vim.keymap.set({ "n", "x" },    "ga", function() require("opencode").prompt("@this") end,                   { desc = "Add to opencode" })
+    vim.keymap.set({ "n", "t" }, "<C-.>", function() require("opencode").toggle() end,                          { desc = "Toggle opencode" })
+    vim.keymap.set("n",        "<S-C-u>", function() require("opencode").command("session.half.page.up") end,   { desc = "opencode half page up" })
+    vim.keymap.set("n",        "<S-C-d>", function() require("opencode").command("session.half.page.down") end, { desc = "opencode half page down" })
+    -- You may want these if you stick with the opinionated "<C-a>" and "<C-x>" above — otherwise consider "<leader>o".
+    vim.keymap.set('n', '+', '<C-a>', { desc = 'Increment', noremap = true })
+    vim.keymap.set('n', '-', '<C-x>', { desc = 'Decrement', noremap = true })
+  end,
+}
+```
+
+### [nixvim](https://github.com/nix-community/nixvim)
+
+```nix
+programs.nixvim = {
+  extraPlugins = [
+    pkgs.vimPlugins.opencode-nvim
+  ];
+};
+```
+
+## ⚙️ Configuration
+
+`opencode.nvim` provides a rich and reliable default experience — see all available options and their defaults [here](./lua/opencode/config.lua).
+
+### Contexts
+
+`opencode.nvim` replaces placeholders in prompts with the corresponding context:
+
+| Placeholder    | Context                                                     |
+| -------------- | ----------------------------------------------------------- |
+| `@this`        | Visual selection if any, else cursor position               |
+| `@buffer`      | Current buffer                                              |
+| `@buffers`     | Open buffers                                                |
+| `@visible`     | Visible text                                                |
+| `@diagnostics` | Current buffer diagnostics                                  |
+| `@quickfix`    | Quickfix list                                               |
+| `@diff`        | Git diff                                                    |
+| `@grapple`     | [grapple.nvim](https://github.com/cbochs/grapple.nvim) tags |
+
+### Prompts
+
+Select or reference prompts to review, explain, and improve your code:
+
+| Name          | Prompt                                                                 |
+| ------------- | ---------------------------------------------------------------------- |
+| `diagnostics` | Explain `@diagnostics`                                                 |
+| `diff`        | Review the following git diff for correctness and readability: `@diff` |
+| `document`    | Add comments documenting `@this`                                       |
+| `explain`     | Explain `@this` and its context                                        |
+| `fix`         | Fix `@diagnostics`                                                     |
+| `optimize`    | Optimize `@this` for performance and readability                       |
+| `review`      | Review `@this` for correctness and readability                         |
+| `test`        | Add tests for `@this`                                                  |
+
+### Provider
+
+You can manually run `opencode` inside Neovim's CWD however you like and `opencode.nvim` will find it!
+
+If `opencode.nvim` can't find an existing `opencode`, it uses the configured provider (defaulting based on availability) to manage one for you.
+
+<details>
+<summary><a href="https://github.com/folke/snacks.nvim/blob/main/docs/terminal.md">snacks.terminal</a></summary>
+
+```lua
+vim.g.opencode_opts = {
+  provider = {
+    enabled = "snacks",
+    snacks = {
+      -- ...
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><a href="https://sw.kovidgoyal.net/kitty/">kitty</a></summary>
+
+```lua
+vim.g.opencode_opts = {
+  provider = {
+    enabled = "kitty",
+    kitty = {
+      -- ...
+    }
+  }
+}
+```
+
+The kitty provider requires [remote control via a socket](https://sw.kovidgoyal.net/kitty/remote-control/#remote-control-via-a-socket) to be enabled.
+
+You can do this either by running Kitty with the following command:
+
+```bash
+# For Linux only:
+kitty -o allow_remote_control=yes --single-instance --listen-on unix:@mykitty
+
+# Other UNIX systems:
+kitty -o allow_remote_control=yes --single-instance --listen-on unix:/tmp/mykitty
+```
+
+OR, by adding the following to your `kitty.conf`:
+
+```
+# For Linux only:
+allow_remote_control yes
+listen_on unix:@mykitty
+# Other UNIX systems:
+allow_remote_control yes
+listen_on unix:/tmp/kitty
+```
+
+</details>
+
+<details>
+<summary><a href="https://wezterm.org/">wezterm</a></summary>
+
+```lua
+vim.g.opencode_opts = {
+  provider = {
+    enabled = "wezterm",
+    -- these are defaults set by wezterm
+    wezterm = {
+      direction = "bottom", -- left/right/top/bottom
+      top_level = false,
+      percent = 50,
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><a href="https://github.com/tmux/tmux">tmux</a></summary>
+
+```lua
+vim.g.opencode_opts = {
+  provider = {
+    enabled = "tmux",
+    tmux = {
+      -- ...
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary>custom</summary>
+
+Integrate your custom method for convenience!
+
+```lua
+vim.g.opencode_opts = {
+  provider = {
+    toggle = function(self)
+      -- ...
+    end,
+    start = function(self)
+      -- ...
+    end,
+    stop = function(self)
+      -- ...
+    end,
+    show = function(self)
+      -- ...
+    end
+  }
+}
+```
+
+</details>
+
+Please submit PRs adding new providers! 🙂
+
+## 🚀 Usage
+
+### ✍️ Ask — `require("opencode").ask()`
+
+Input a prompt for `opencode`.
+
+- Press `<Up>` to browse recent asks.
+- Highlights and completes contexts and `opencode` subagents.
+  - Press `<Tab>` to trigger built-in completion.
+  - Registers `opts.ask.blink_cmp_sources` when using `snacks.input` and `blink.cmp`.
+
+<img width="800" alt="image" src="https://github.com/user-attachments/assets/8591c610-4824-4480-9e6d-0c94e9c18f3a" />
+
+### 📝 Select — `require("opencode").select()`
+
+Select from all `opencode.nvim` functionality.
+
+- Fetches custom commands from `opencode`.
+- Highlights and previews items when using `snacks.picker`.
+
+<img width="800" alt="image" src="https://github.com/user-attachments/assets/afd85acd-e4b3-47d2-b92f-f58d25972edb" />
+
+### 🗣️ Prompt — `require("opencode").prompt()` | `:[range]OpencodePrompt`
+
+Prompt `opencode`.
+
+- Resolves named references to configured prompts.
+- Injects configured contexts.
+- `opencode` will interpret `@` references to files or subagents.
+
+### 🧑‍🏫 Command — `require("opencode").command()`
+
+Command `opencode`:
+
+| Command                  | Description                                        |
+| ------------------------ | -------------------------------------------------- |
+| `session.list`           | List sessions                                      |
+| `session.new`            | Start a new session                                |
+| `session.share`          | Share the current session                          |
+| `session.interrupt`      | Interrupt the current session                      |
+| `session.compact`        | Compact the current session (reduce context size)  |
+| `session.page.up`        | Scroll messages up by one page                     |
+| `session.page.down`      | Scroll messages down by one page                   |
+| `session.half.page.up`   | Scroll messages up by half a page                  |
+| `session.half.page.down` | Scroll messages down by half a page                |
+| `session.first`          | Jump to the first message in the session           |
+| `session.last`           | Jump to the last message in the session            |
+| `session.undo`           | Undo the last action in the current session        |
+| `session.redo`           | Redo the last undone action in the current session |
+| `prompt.submit`          | Submit the TUI input                               |
+| `prompt.clear`           | Clear the TUI input                                |
+| `agent.cycle`            | Cycle the selected agent                           |
+
+## 👀 Events
+
+`opencode.nvim` forwards `opencode`'s Server-Sent-Events as an `OpencodeEvent` autocmd:
+
+```lua
+-- Handle `opencode` events
+vim.api.nvim_create_autocmd("User", {
+  pattern = "OpencodeEvent:*", -- Optionally filter event types
+  callback = function(args)
+    ---@type opencode.cli.client.Event
+    local event = args.data.event
+    ---@type number
+    local port = args.data.port
+
+    -- See the available event types and their properties
+    vim.notify(vim.inspect(event))
+    -- Do something useful
+    if event.type == "session.idle" then
+      vim.notify("`opencode` finished responding")
+    end
+  end,
+})
+```
+
+### Edits
+
+When `opencode` edits a file, `opencode.nvim` automatically reloads the corresponding buffer.
+
+### Permissions
+
+When `opencode` requests a permission, `opencode.nvim` waits for idle to ask you to approve or deny it.
+
+<img width="800" alt="image" src="https://github.com/user-attachments/assets/643681ca-75db-4621-8a4a-e744c03c4b4f" />
+
+### Statusline
+
+<details>
+<summary><a href="https://github.com/nvim-lualine/lualine.nvim">lualine</a></summary>
+
+```lua
+require("lualine").setup({
+  sections = {
+    lualine_z = {
+      {
+        require("opencode").statusline,
+      },
+    }
+  }
+})
+```
+
+</details>
+
+## 🙏 Acknowledgments
+
+- Inspired by [nvim-aider](https://github.com/GeorgesAlkhouri/nvim-aider), [neopencode.nvim](https://github.com/loukotal/neopencode.nvim), and [sidekick.nvim](https://github.com/folke/sidekick.nvim).
+- Uses `opencode`'s TUI for simplicity — see [sudo-tee/opencode.nvim](https://github.com/sudo-tee/opencode.nvim) for a Neovim frontend.
+- [mcp-neovim-server](https://github.com/bigcodegen/mcp-neovim-server) may better suit you, but it lacks customization and tool calls are slow and unreliable.
+
+
+---
+
+*This file was automatically generated by OpenCode Extensions TUI on 2025-12-02T17:11:48.692Z*

@@ -7,7 +7,8 @@
     "dev": "bun run --watch src/index.tsx"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/marked-terminal": "^6.1.1"
   },
   "peerDependencies": {
     "typescript": "^5"
@@ -15,6 +16,10 @@
   "dependencies": {
     "@opentui/core": "^0.1.53",
     "@opentui/react": "^0.1.53",
-    "react": "^19.1.1"
+    "@types/marked": "^6.0.0",
+    "marked": "17.0.1",
+    "marked-terminal": "^7.3.0",
+    "react": "^19.1.1",
+    "terminal-markdown": "^0.0.1"
   }
 }

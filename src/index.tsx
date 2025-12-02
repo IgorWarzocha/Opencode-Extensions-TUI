@@ -5,7 +5,7 @@ import type { Extension } from "./types/extension";
 import { SearchHeader } from "./components/SearchHeader";
 import { CategorySidebar, CATEGORIES } from "./components/CategorySidebar";
 import { ExtensionCard } from "./components/ExtensionCard";
-import { ExtensionDetails } from "./components/ExtensionDetails";
+import { ExtensionDetails } from "./detail/ExtensionDetails";
 import { StatusBar } from "./components/StatusBar";
 import { ocTheme } from "./theme";
 import { loadExtensions } from "./data/loadExtensions";
@@ -89,22 +89,34 @@ function App() {
       return;
     }
 
+    if (view === 'details') {
+      if (key.name === 'q') {
+        process.exit(0);
+        return;
+      }
+      if (key.name === 'i' || key.name === 'escape') {
+        setView('list');
+      }
+      // Ignore list navigation while in details; ExtensionDetails handles scroll.
+      return;
+    }
+
     // Category Navigation: a/d or j/k (Left/Right)
     if (key.name === 'a' || key.name === 'j' || key.name === 'left') {
-        const currentCatIndex = CATEGORIES.indexOf(selectedCategory);
-        const prevCatIndex = (currentCatIndex - 1 + CATEGORIES.length) % CATEGORIES.length;
-        const prevCat = CATEGORIES[prevCatIndex] ?? 'All';
-        setSelectedCategory(prevCat);
-        setSelectedIndex(0);
-        return;
+      const currentCatIndex = CATEGORIES.indexOf(selectedCategory);
+      const prevCatIndex = (currentCatIndex - 1 + CATEGORIES.length) % CATEGORIES.length;
+      const prevCat = CATEGORIES[prevCatIndex] ?? 'All';
+      setSelectedCategory(prevCat);
+      setSelectedIndex(0);
+      return;
     }
     if (key.name === 'd' || key.name === 'k' || key.name === 'right') {
-        const currentCatIndex = CATEGORIES.indexOf(selectedCategory);
-        const nextCatIndex = (currentCatIndex + 1) % CATEGORIES.length;
-        const nextCat = CATEGORIES[nextCatIndex] ?? 'All';
-        setSelectedCategory(nextCat);
-        setSelectedIndex(0);
-        return;
+      const currentCatIndex = CATEGORIES.indexOf(selectedCategory);
+      const nextCatIndex = (currentCatIndex + 1) % CATEGORIES.length;
+      const nextCat = CATEGORIES[nextCatIndex] ?? 'All';
+      setSelectedCategory(nextCat);
+      setSelectedIndex(0);
+      return;
     }
 
     switch (key.name) {
@@ -176,7 +188,11 @@ function App() {
         paddingRight={1}
       >
         {view === 'details' && currentExtension ? (
-          <ExtensionDetails extension={currentExtension} />
+          <ExtensionDetails 
+            extension={currentExtension} 
+            isActive={view === 'details'} 
+            onClose={() => setView('list')} 
+          />
         ) : (
           <box flexDirection="column" flexGrow={1}>
             {filteredExtensions.length === 0 ? (
