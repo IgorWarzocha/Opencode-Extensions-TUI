@@ -1,4 +1,4 @@
-import { createCliRenderer } from "@opentui/core";
+import { createCliRenderer, getTreeSitterClient } from "@opentui/core";
 import { createRoot, useKeyboard } from "@opentui/react";
 import { useEffect, useState } from "react";
 import type { Extension } from "./types/extension";
@@ -9,8 +9,11 @@ import { ExtensionDetails } from "./detail/ExtensionDetails";
 import { StatusBar } from "./components/StatusBar";
 import { ocTheme } from "./theme";
 import { loadExtensions } from "./data/loadExtensions";
-
 const initialExtensions = await loadExtensions();
+
+// Initialize tree-sitter client to ensure parsers are loaded
+const tsClient = getTreeSitterClient();
+await tsClient.initialize();
 
 function App() {
   const [extensions, setExtensions] = useState<Extension[]>(initialExtensions);
@@ -36,7 +39,7 @@ function App() {
   const sidebarWidth = 0;
   const availableWidth = Math.max(30, terminalWidth - 10);
   const maxLine = Math.max(20, availableWidth - 4);
-  
+
   let mode = 'narrow';
   if (maxLine >= 100) mode = 'wide';
   else if (maxLine >= 50) mode = 'medium';
@@ -188,10 +191,10 @@ function App() {
         paddingRight={1}
       >
         {view === 'details' && currentExtension ? (
-          <ExtensionDetails 
-            extension={currentExtension} 
-            isActive={view === 'details'} 
-            onClose={() => setView('list')} 
+          <ExtensionDetails
+            extension={currentExtension}
+            isActive={view === 'details'}
+            onClose={() => setView('list')}
           />
         ) : (
           <box flexDirection="column" flexGrow={1}>

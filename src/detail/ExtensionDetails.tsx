@@ -4,16 +4,16 @@ import type { Extension } from '../types/extension';
 import { t, dim, yellow } from '@opentui/core';
 import { ocTheme } from '../theme';
 import { githubService } from '../services/github';
-import { renderMarkdown } from '../utils/markdown';
-import { 
-  ExtensionHeader, 
-  ExtensionDescription, 
-  ExtensionMetadata, 
-  GitHubInfo, 
-  ExtensionAbout, 
-  ExtensionInstallation, 
-  ExtensionCuratorNotes 
+import {
+  ExtensionHeader,
+  ExtensionDescription,
+  ExtensionMetadata,
+  GitHubInfo,
+  ExtensionAbout,
+  ExtensionInstallation,
+  ExtensionCuratorNotes
 } from './components/ExtensionInfo';
+import { createSyntaxStyle } from '../theme/syntax';
 
 interface ExtensionDetailsProps {
   extension: Extension;
@@ -27,6 +27,7 @@ export function ExtensionDetails({ extension, isActive = true }: ExtensionDetail
   const [error, setError] = useState<string | null>(null);
   const [readmeScrollOffset, setReadmeScrollOffset] = useState(0);
   const [renderedReadme, setRenderedReadme] = useState<string>('');
+  const syntaxStyle = createSyntaxStyle();
 
   useEffect(() => {
     const fetchGitHubData = async () => {
@@ -57,20 +58,21 @@ export function ExtensionDetails({ extension, isActive = true }: ExtensionDetail
 
   useEffect(() => {
     if (githubData?.readme) {
-      const rendered = renderMarkdown(githubData.readme);
-      setRenderedReadme(rendered);
+      setRenderedReadme(githubData.readme);
+      setReadmeScrollOffset(0);
+    } else {
+      setRenderedReadme('');
       setReadmeScrollOffset(0);
     }
   }, [githubData?.readme]);
 
   useKeyboard((key) => {
     if (!renderedReadme || !isActive) return;
-    
-    // Use original markdown for line counting since renderedReadme is now StyledText
+
     const readmeText = githubData?.readme || '';
     const lines = readmeText.split('\n');
     const maxScroll = Math.max(0, lines.length - 15);
-    
+
     if (key.name === 'up') {
       setReadmeScrollOffset(prev => Math.max(0, prev - 1));
       return true; // Prevent event bubbling
@@ -81,10 +83,14 @@ export function ExtensionDetails({ extension, isActive = true }: ExtensionDetail
     return false;
   });
 
+  const visibleReadme = renderedReadme
+    ? renderedReadme.split('\n').slice(readmeScrollOffset).join('\n')
+    : '';
+
   return (
-    <box 
-      flexDirection="column" 
-      borderStyle="double" 
+    <box
+      flexDirection="column"
+      borderStyle="double"
       borderColor={ocTheme.borderActive}
       backgroundColor={ocTheme.element}
       padding={1}
@@ -110,7 +116,13 @@ export function ExtensionDetails({ extension, isActive = true }: ExtensionDetail
 
       {renderedReadme && (
         <box marginBottom={1} borderStyle="single" borderColor={ocTheme.border} padding={1} title="README">
-          <text content={t`${renderedReadme.split('\n').slice(readmeScrollOffset).join('\n')}`} />
+          <code
+            filetype="markdown"
+            content={visibleReadme}
+            conceal={true}
+            drawUnstyledText={false}
+            syntaxStyle={syntaxStyle}
+          />
           {(githubData?.readme?.split('\n').length || 0) > readmeScrollOffset + 15 && (
             <text content={t`${dim('... (more content below, use ↑↓ to scroll)')}`} />
           )}

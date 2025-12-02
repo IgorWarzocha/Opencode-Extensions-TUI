@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import type { Extension } from '../types/extension';
 import type { GitHubRepo } from '../services/github';
 import { githubService } from '../services/github';
-import { renderMarkdown } from '../utils/markdown';
 
 interface UseExtensionReadmeResult {
   githubData: GitHubRepo | null;
@@ -46,7 +45,7 @@ export function useExtensionReadme(extension: Extension): UseExtensionReadmeResu
 
   useEffect(() => {
     if (githubData?.readme) {
-      setRenderedReadme(renderMarkdown(githubData.readme));
+      setRenderedReadme(githubData.readme);
     } else {
       setRenderedReadme('');
     }
