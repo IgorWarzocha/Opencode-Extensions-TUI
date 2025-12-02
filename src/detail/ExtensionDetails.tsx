@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
-import { useKeyboard } from '@opentui/react';
+import { useState, useEffect, useRef } from 'react';
 import type { Extension } from '../types/extension';
-import { t, dim, yellow } from '@opentui/core';
+import { t, dim, yellow, type ScrollBoxRenderable } from '@opentui/core';
 import { ocTheme } from '../theme';
 import { githubService } from '../services/github';
 import {
@@ -25,9 +24,8 @@ export function ExtensionDetails({ extension, isActive = true }: ExtensionDetail
   const [githubData, setGithubData] = useState(extension.githubData || null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [readmeScrollOffset, setReadmeScrollOffset] = useState(0);
-  const [renderedReadme, setRenderedReadme] = useState<string>('');
   const syntaxStyle = createSyntaxStyle();
+  const scrollboxRef = useRef<ScrollBoxRenderable | null>(null);
 
   useEffect(() => {
     const fetchGitHubData = async () => {
@@ -56,37 +54,6 @@ export function ExtensionDetails({ extension, isActive = true }: ExtensionDetail
     fetchGitHubData();
   }, [extension.repository_url, extension.source, githubData]);
 
-  useEffect(() => {
-    if (githubData?.readme) {
-      setRenderedReadme(githubData.readme);
-      setReadmeScrollOffset(0);
-    } else {
-      setRenderedReadme('');
-      setReadmeScrollOffset(0);
-    }
-  }, [githubData?.readme]);
-
-  useKeyboard((key) => {
-    if (!renderedReadme || !isActive) return;
-
-    const readmeText = githubData?.readme || '';
-    const lines = readmeText.split('\n');
-    const maxScroll = Math.max(0, lines.length - 15);
-
-    if (key.name === 'up') {
-      setReadmeScrollOffset(prev => Math.max(0, prev - 1));
-      return true; // Prevent event bubbling
-    } else if (key.name === 'down') {
-      setReadmeScrollOffset(prev => Math.min(maxScroll, prev + 1));
-      return true; // Prevent event bubbling
-    }
-    return false;
-  });
-
-  const visibleReadme = renderedReadme
-    ? renderedReadme.split('\n').slice(readmeScrollOffset).join('\n')
-    : '';
-
   return (
     <box
       flexDirection="column"
@@ -96,42 +63,60 @@ export function ExtensionDetails({ extension, isActive = true }: ExtensionDetail
       padding={1}
       flexGrow={1}
     >
-      <ExtensionHeader extension={extension} />
-      <ExtensionDescription extension={extension} />
-      <ExtensionMetadata extension={extension} githubData={githubData} />
+      {/* Sticky header section */}
+      <box flexDirection="column" flexShrink={0}>
+        <ExtensionHeader extension={extension} />
+        <ExtensionDescription extension={extension} />
+        <ExtensionMetadata extension={extension} githubData={githubData} />
 
-      {isLoading && (
-        <box marginBottom={1} borderStyle="single" borderColor={ocTheme.border} padding={1}>
-          <text content={t`${yellow('Loading GitHub data...')}`} />
-        </box>
+        {isLoading && (
+          <box marginBottom={1} borderStyle="single" borderColor={ocTheme.border} padding={1}>
+            <text content={t`${yellow('Loading GitHub data...')}`} />
+          </box>
+        )}
+
+        {error && (
+          <box marginBottom={1} borderStyle="single" borderColor={ocTheme.border} padding={1}>
+            <text content={t`${yellow(`Error: ${error}`)}`} />
+          </box>
+        )}
+
+        <GitHubInfo githubData={githubData} />
+      </box>
+
+      {/* Scrollable README section */}
+      {githubData?.readme && (
+        <scrollbox
+          ref={(ref) => { scrollboxRef.current = ref; }}
+          flexGrow={1}
+          marginTop={1}
+          marginBottom={1}
+          borderStyle="single"
+          borderColor={ocTheme.border}
+          padding={1}
+          focused={isActive}
+          scrollY={true}
+          scrollX={false}
+        >
+          <box flexDirection="column">
+            <text content={t`${dim('README')}`} />
+            <code
+              filetype="markdown"
+              content={githubData.readme}
+              conceal={true}
+              drawUnstyledText={false}
+              syntaxStyle={syntaxStyle}
+            />
+          </box>
+        </scrollbox>
       )}
 
-      {error && (
-        <box marginBottom={1} borderStyle="single" borderColor={ocTheme.border} padding={1}>
-          <text content={t`${yellow(`Error: ${error}`)}`} />
-        </box>
-      )}
-
-      <GitHubInfo githubData={githubData} />
-
-      {renderedReadme && (
-        <box marginBottom={1} borderStyle="single" borderColor={ocTheme.border} padding={1} title="README">
-          <code
-            filetype="markdown"
-            content={visibleReadme}
-            conceal={true}
-            drawUnstyledText={false}
-            syntaxStyle={syntaxStyle}
-          />
-          {(githubData?.readme?.split('\n').length || 0) > readmeScrollOffset + 15 && (
-            <text content={t`${dim('... (more content below, use ↑↓ to scroll)')}`} />
-          )}
-        </box>
-      )}
-
-      <ExtensionAbout extension={extension} />
-      <ExtensionInstallation extension={extension} />
-      <ExtensionCuratorNotes extension={extension} />
+      {/* Footer sections - also sticky */}
+      <box flexDirection="column" flexShrink={0}>
+        <ExtensionAbout extension={extension} />
+        <ExtensionInstallation extension={extension} />
+        <ExtensionCuratorNotes extension={extension} />
+      </box>
     </box>
   );
 }
