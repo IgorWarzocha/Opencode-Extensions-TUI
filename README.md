@@ -20,7 +20,7 @@ Perfect for developers who live in the terminal and want to quickly discover new
 - **Rich Information** - See downloads, stars, and detailed descriptions
 - **Live Updates** - Refresh to get the latest extension data
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
