@@ -1,24 +1,24 @@
 # OpenCode Extensions TUI
 
-🚀 **A beautiful terminal interface for discovering and managing OpenCode extensions**
+**A beautiful terminal interface for discovering and managing OpenCode extensions**
 
 ![Terminal UI](https://img.shields.io/badge/Terminal-Interface-green) ![OpenCode](https://img.shields.io/badge/OpenCode-Extensions-blue) ![Cross Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey)
 
-## ✨ What is this?
+## What is this?
 
 OpenCode Extensions TUI is a fast, keyboard-driven terminal application that lets you browse, search, and manage OpenCode extensions right from your command line. No browser needed!
 
 Perfect for developers who live in the terminal and want to quickly discover new tools and extensions for their OpenCode setup.
 
-## 🎯 Key Features
+## Key Features
 
-- **⚡ Lightning Fast** - Instant search and navigation
-- **🎨 Beautiful Interface** - Clean, responsive terminal UI
-- **🔍 Smart Search** - Find extensions by name, description, or category
-- **📂 Organized Browsing** - Navigate through curated categories
-- **⌨️ Keyboard Only** - Full control without touching your mouse
-- **📊 Rich Information** - See downloads, stars, and detailed descriptions
-- **🔄 Live Updates** - Refresh to get the latest extension data
+- **Lightning Fast** - Instant search and navigation
+- **Beautiful Interface** - Clean, responsive terminal UI
+- **Smart Search** - Find extensions by name, description, or category
+- **Organized Browsing** - Navigate through curated categories
+- **Keyboard Only** - Full control without touching your mouse
+- **Rich Information** - See downloads, stars, and detailed descriptions
+- **Live Updates** - Refresh to get the latest extension data
 
 ## 🚀 Quick Start
 
@@ -44,9 +44,9 @@ bun install
 bun dev
 ```
 
-That's it! You're now browsing extensions in your terminal. 🎉
+That's it! You're now browsing extensions in your terminal.
 
-## 🎮 How to Use
+## How to Use
 
 ### Navigation
 
@@ -70,20 +70,20 @@ Press `/` to search:
 
 ### Views
 
-1. **📋 List View** - Browse all extensions with key info
-2. **📖 Details View** - Press `i` for full extension details
-3. **🔍 Search View** - Press `/` to find specific extensions
+1. **List View** - Browse all extensions with key info
+2. **Details View** - Press `i` for full extension details
+3. **Search View** - Press `/` to find specific extensions
 
-## 🎨 What You'll See
+## What You'll See
 
 Each extension card shows:
 - **Name & Author** - Who made it
-- **⭐ Stars & 📥 Downloads** - Community popularity
-- **🏷️ Category** - What type of extension it is
-- **📝 Description** - What it does
-- **✅ Status** - Available or already installed
+- **Stars & Downloads** - Community popularity
+- **Category** - What type of extension it is
+- **Description** - What it does
+- **Status** - Available or already installed
 
-## 🛠️ For Developers
+## For Developers
 
 Want to contribute or modify the TUI?
 
@@ -97,7 +97,7 @@ bun run src/index.tsx
 
 Built with React 19, OpenTUI, and TypeScript. See [AGENTS.md](./AGENTS.md) for development guidelines.
 
-## 🤝 Contributing
+## Contributing
 
 Found a bug or have an idea? 
 
@@ -105,7 +105,7 @@ Found a bug or have an idea?
 2. Fork and create a Pull Request
 3. Join the OpenCode community!
 
-## 📚 More About OpenCode
+## More About OpenCode
 
 - [OpenCode Official Site](https://opencode.ai/)
 - [OpenCode GitHub](https://github.com/sst/opencode)
@@ -114,6 +114,6 @@ Found a bug or have an idea?
 
 ---
 
-**Made with ❤️ for the terminal-loving developer community**
+Made for the terminal-loving developer community
 
-*If you like this, give it a ⭐ on GitHub!*
+If you like this, give it a star on GitHub!
