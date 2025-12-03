@@ -4,8 +4,6 @@
 - `bun install` - Install dependencies
 - `bun dev` - Start development server with hot reload
 - `bun run src/index.tsx` - Run the application directly
-- `bun test` - Run tests (if present)
-- `bun run <test-file>` - Run single test file
 
 ## Code Style Guidelines
 - **Framework**: React 19 with OpenTUI components for terminal UI
@@ -17,9 +15,11 @@
 - **Error Handling**: TypeScript strict mode, null coalescing (`??`) for optional values
 - **State Management**: React hooks (`useState`, `useEffect`), `useKeyboard` for input handling
 - **Styling**: Use `ocTheme` object for consistent colors, `t()` template literal for styled text
+- **Data Loading**: Extension data loaded from JSON files in `opencode-directory/`
+- **Utilities**: Helper functions for ellipsis, count formatting, and responsive layout
 
 ## Project Architecture
 - **Runtime**: Bun with TypeScript compilation
 - **UI Framework**: OpenTUI for terminal-based React applications
 - **Entry Point**: `src/index.tsx` creates CLI renderer and renders React root
-- **Database**: SQLite at `extensions.sqlite` with TypeScript types in `src/database/`
+- **Data Sources**: JSON files (tools.json, integrations.json, themes.json) for extension metadata
