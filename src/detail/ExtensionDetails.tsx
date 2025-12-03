@@ -1,18 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import type { Extension } from '../types/extension';
-import { t, dim, yellow, type ScrollBoxRenderable } from '@opentui/core';
-import { ocTheme } from '../theme';
-import { githubService } from '../services/github';
+import { t, yellow, type ScrollBoxRenderable } from '@opentui/core';
+import { loadReadmeData } from '../data/loadReadmeData';
+import { createSyntaxStyle } from '../theme/syntax';
 import {
   ExtensionHeader,
   ExtensionDescription,
-  ExtensionMetadata,
-  GitHubInfo,
-  ExtensionAbout,
   ExtensionInstallation,
-  ExtensionCuratorNotes
+  // removed ExtensionCuratorNotes per request
 } from './components/ExtensionInfo';
-import { createSyntaxStyle } from '../theme/syntax';
+
 
 interface ExtensionDetailsProps {
   extension: Extension;
@@ -21,102 +18,116 @@ interface ExtensionDetailsProps {
 }
 
 export function ExtensionDetails({ extension, isActive = true }: ExtensionDetailsProps) {
-  const [githubData, setGithubData] = useState(extension.githubData || null);
+  const [readmeData, setReadmeData] = useState<Partial<Extension>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasTried, setHasTried] = useState(false);
   const syntaxStyle = createSyntaxStyle();
   const scrollboxRef = useRef<ScrollBoxRenderable | null>(null);
 
   useEffect(() => {
-    const fetchGitHubData = async () => {
-      if (extension.source !== 'github' || !extension.repository_url || githubData) {
-        return;
-      }
+    // Reset when switching items
+    setReadmeData({});
+    setError(null);
+    setIsLoading(false);
+    setHasTried(false);
+  }, [extension.name]);
+
+  useEffect(() => {
+    const loadReadme = async () => {
+      if (hasTried || readmeData.long_description) return;
 
       setIsLoading(true);
       setError(null);
 
       try {
-        const data = await githubService.getRepoDetails(extension.repository_url);
-        if (data) {
-          setGithubData(data);
-          await githubService.saveRepoDetails(data);
+        const data = await loadReadmeData(
+          extension.name,
+          extension.repository_url,
+          extension.display_name
+        );
+        if (data && Object.keys(data).length > 0) {
+          setReadmeData(data);
         } else {
-          setError('Failed to fetch repository data');
+          setError('README not found');
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error occurred');
       } finally {
         setIsLoading(false);
+        setHasTried(true);
       }
     };
 
-    fetchGitHubData();
-  }, [extension.repository_url, extension.source, githubData]);
+    loadReadme();
+  }, [extension.name, extension.repository_url, extension.display_name, readmeData.long_description, hasTried]);
+
+  const merged = { ...extension, ...readmeData } as Extension;
+  const readmeContent = readmeData.long_description || '';
 
   return (
-    <box
-      flexDirection="column"
-      borderStyle="double"
-      borderColor={ocTheme.borderActive}
-      backgroundColor={ocTheme.element}
-      padding={1}
-      flexGrow={1}
-    >
-      {/* Sticky header section */}
+    <box flexDirection="column" flexGrow={1} flexShrink={1} padding={1}>
       <box flexDirection="column" flexShrink={0}>
-        <ExtensionHeader extension={extension} />
-        <ExtensionDescription extension={extension} />
-        <ExtensionMetadata extension={extension} githubData={githubData} />
+        <ExtensionHeader extension={merged} />
+        <ExtensionDescription extension={merged} />
+        <box marginTop={1}>
+          <ExtensionInstallation extension={merged} />
+        </box>
 
         {isLoading && (
-          <box marginBottom={1} borderStyle="single" borderColor={ocTheme.border} padding={1}>
-            <text content={t`${yellow('Loading GitHub data...')}`} />
+          <box marginBottom={1}>
+            <text content={t`${yellow('Loading README data...')}`} />
           </box>
         )}
 
         {error && (
-          <box marginBottom={1} borderStyle="single" borderColor={ocTheme.border} padding={1}>
+          <box marginBottom={1}>
             <text content={t`${yellow(`Error: ${error}`)}`} />
           </box>
         )}
-
-        <GitHubInfo githubData={githubData} />
       </box>
 
-      {/* Scrollable README section */}
-      {githubData?.readme && (
+      {(readmeContent && !isLoading && !error) ? (
         <scrollbox
           ref={(ref) => { scrollboxRef.current = ref; }}
           flexGrow={1}
+          flexShrink={1}
           marginTop={1}
           marginBottom={1}
-          borderStyle="single"
-          borderColor={ocTheme.border}
-          padding={1}
           focused={isActive}
           scrollY={true}
           scrollX={false}
         >
-          <box flexDirection="column">
-            <text content={t`${dim('README')}`} />
-            <code
-              filetype="markdown"
-              content={githubData.readme}
-              conceal={true}
-              drawUnstyledText={false}
-              syntaxStyle={syntaxStyle}
-            />
-          </box>
+          <code
+            filetype="markdown"
+            content={readmeContent}
+            conceal={true}
+            drawUnstyledText={false}
+            syntaxStyle={syntaxStyle}
+          />
+        </scrollbox>
+      ) : (
+        <scrollbox
+          ref={(ref) => { scrollboxRef.current = ref; }}
+          flexGrow={1}
+          flexShrink={1}
+          marginTop={1}
+          marginBottom={1}
+          focused={false}
+          scrollY={true}
+          scrollX={false}
+        >
+          {isLoading ? (
+            <text content={t`Loading...`} />
+          ) : error ? (
+            <text content={t`${yellow(error)}`} />
+          ) : (
+            <text content={t`No README content`} />
+          )}
         </scrollbox>
       )}
-
-      {/* Footer sections - also sticky */}
-      <box flexDirection="column" flexShrink={0}>
-        <ExtensionAbout extension={extension} />
-        <ExtensionInstallation extension={extension} />
-        <ExtensionCuratorNotes extension={extension} />
-      </box>
     </box>
   );
 }
+
+

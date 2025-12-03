@@ -20,6 +20,8 @@ export interface Extension {
   category: string;
   download_count: number;
   star_count: number;
+  forks: number;
+  language: string | null;
   created_at: string | null;
   updated_at: string | null;
   status: string;

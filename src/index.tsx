@@ -176,12 +176,31 @@ function App() {
   });
 
   return (
-    <box flexDirection="column" flexGrow={1} padding={1} backgroundColor={ocTheme.background}>
+    <box
+      flexDirection="column"
+      flexGrow={1}
+      flexShrink={1}
+      padding={1}
+      minHeight={0}
+      backgroundColor={ocTheme.background}
+    >
       <CategorySidebar selectedCategory={selectedCategory} />
+
+      {view !== 'details' && (
+        <box flexShrink={0} marginTop={1}>
+          <SearchHeader
+            searchQuery={searchQuery}
+            totalCount={extensions.length}
+            installedCount={extensions.filter((e) => e.status === 'installed').length}
+            isSearching={view === 'search'}
+          />
+        </box>
+      )}
 
       <box
         flexDirection="column"
         flexGrow={1}
+        flexShrink={1}
         marginTop={1}
         backgroundColor={ocTheme.panel}
         borderStyle="single"
@@ -197,7 +216,7 @@ function App() {
             onClose={() => setView('list')}
           />
         ) : (
-          <box flexDirection="column" flexGrow={1}>
+          <box flexDirection="column" flexGrow={1} flexShrink={1}>
             {filteredExtensions.length === 0 ? (
               <text>No extensions found.</text>
             ) : (
@@ -217,16 +236,7 @@ function App() {
         )}
       </box>
 
-      <box>
-        <SearchHeader
-          searchQuery={searchQuery}
-          totalCount={extensions.length}
-          installedCount={extensions.filter((e) => e.status === 'installed').length}
-          isSearching={view === 'search'}
-        />
-      </box>
-
-      <box marginTop={1}>
+      <box marginTop={1} flexShrink={0}>
         <StatusBar />
       </box>
     </box>
