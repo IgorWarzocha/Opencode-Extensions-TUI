@@ -1,21 +1,26 @@
 # OpenCode Extensions TUI
 
-**A beautiful terminal interface for discovering and managing OpenCode extensions**
+**A powerful terminal interface for discovering and managing OpenCode extensions**
 
-![Terminal UI](https://img.shields.io/badge/Terminal-Interface-green) ![OpenCode](https://img.shields.io/badge/OpenCode-Extensions-blue) ![Cross Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey)
+![Terminal UI](https://img.shields.io/badge/Terminal-Interface-green) ![OpenCode](https://img.shields.io/badge/OpenCode-Extensions-blue) ![Cross Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey) ![Installation](https://img.shields.io/badge/Installation-Working-brightgreen) ![Database](https://img.shields.io/badge/Database-SQLite-blue)
 
-> **⚠️ Important Disclaimer**: This is currently a **UI demo** showcasing a plugin browser interface for OpenCode extensions. It does not include actual plugin installation, management, or the automated community pipeline for adding and reviewing extensions - these features are planned for future releases.
+> **🔧 Beyond Demo**: This has evolved beyond a UI demo and now includes real installation capabilities, persistent storage, and extension lifecycle management. Still under active development.
 
 ![OpenCode Extensions TUI Screenshot](./v1.png)
 
 ## What is this?
 
-OpenCode Extensions TUI is a fast, keyboard-driven terminal application that lets you browse, search, and manage OpenCode extensions right from your command line. No browser needed!
+OpenCode Extensions TUI is a comprehensive terminal application that lets you discover, install, and manage OpenCode extensions right from your command line. No browser needed!
 
-Perfect for developers who live in the terminal and want to quickly discover new tools and extensions for their OpenCode setup.
+Perfect for developers who live in the terminal and want complete control over their OpenCode extension ecosystem with real installation capabilities and persistent state management.
 
 ## Key Features
 
+- **Installation Capabilities** - Install extensions via npm, bash scripts, or direct download
+- **Persistent Storage** - SQLite database tracks installation status and metadata
+- **Multiple Installation Methods** - Supports npm packages, bash scripts, GitHub agents, and drop-in extensions
+- **Interactive Installation Flows** - Modal dialogs for installation options and script previews
+- **Configuration Management** - Updates your OpenCode configuration files
 - **Lightning Fast** - Instant search and navigation
 - **Beautiful Interface** - Clean, responsive terminal UI
 - **Smart Search** - Find extensions by name, description, or category
@@ -23,7 +28,7 @@ Perfect for developers who live in the terminal and want to quickly discover new
 - **Keyboard Only** - Full control without touching your mouse
 - **Rich Information** - See downloads, stars, and detailed descriptions
 - **Live Updates** - Refresh to get the latest extension data
-- **Installation Tracking** - Mark extensions as installed/uninstalled (UI simulation)
+- **Status Tracking** - Installation/uninstallation status with error handling
 
 ## Quick Start
 
@@ -60,7 +65,7 @@ That's it! You're now browsing extensions in your terminal.
 | `↑` `↓` or `w` `s` | Move up/down through extensions |
 | `←` `→` or `a` `d` or `j` `k` | Switch between categories |
 | `Tab` | Quick category cycling |
-| `Enter` | Mark extension as installed |
+| `Enter` | Install selected extension |
 | `u` | Uninstall selected extension |
 | `i` | Show detailed information |
 | `/` | Start searching |
@@ -74,11 +79,20 @@ Press `/` to search:
 - `Enter` to apply search
 - `Escape` to cancel and go back
 
+### Installation
+
+Press `Enter` on any extension to install:
+- **NPM Extensions**: Choose between local or global installation scope
+- **Bash Scripts**: Preview installation scripts before execution
+- **GitHub Agents**: Install directly from GitHub repositories
+- **Drop Extensions**: Direct file-based installation
+
 ### Views
 
 1. **List View** - Browse all extensions with key info
 2. **Details View** - Press `i` for full extension details
 3. **Search View** - Press `/` to find specific extensions
+4. **Installation Modals** - Interactive dialogs for installation options
 
 ## What You'll See
 
@@ -89,7 +103,7 @@ Each extension card shows:
 - **Description** - What it does
 - **Status** - Available or marked as installed
 
-**Note**: Extension data is loaded from local JSON files in the repository, not from a live API.
+**Note**: Extension data is loaded from local JSON files in the repository. Installation status is persisted in a local SQLite database.
 
 ## For Developers
 
