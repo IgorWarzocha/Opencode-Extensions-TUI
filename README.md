@@ -1,55 +1,141 @@
-# Vite + React 19 + TypeScript 5.9 + Convex + Tailwind 4.1 Agents
+# OpenCode Extensions TUI
 
-A specialized collection of Opencode agents for building modern full-stack web applications with the Vite + React 19 + TypeScript 5.9 + Convex + Tailwind 4.1 stack.
+**A powerful terminal interface for discovering and managing OpenCode extensions**
 
-## Stack Overview
+![Terminal UI](https://img.shields.io/badge/Terminal-Interface-green) ![OpenCode](https://img.shields.io/badge/OpenCode-Extensions-blue) ![Cross Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey) ![Installation](https://img.shields.io/badge/Installation-Working-brightgreen) ![Database](https://img.shields.io/badge/Database-SQLite-blue)
 
-- **Vite**: Fast build tool and development server
-- **React 19**: Latest React with Server Components, Actions, and Compiler
-- **TypeScript 5.9**: Modern TypeScript with latest features and strict defaults
-- **Convex**: Reactive database and serverless backend
-- **Tailwind CSS 4.1**: Utility-first CSS framework with new v4 features
+> **🔧 Beyond Demo**: This has evolved beyond a UI demo and now includes real installation capabilities, persistent storage, and extension lifecycle management. Still under active development.
 
-## Available Agents
+![OpenCode Extensions TUI Screenshot](./v1.png)
 
-### Core Technology Agents
-- **`convex-database-expert.md`** - Deep Convex expertise for schema design, queries, mutations, and backend patterns
-- **`react-19-master.md`** - React 19.2 mastery including Server Components, Actions, and Compiler patterns
-- **`typescript-59-engineer.md`** - TypeScript 5.9 expertise with advanced typing and modern patterns
-- **`tailwind-41-architect.md`** - Tailwind CSS 4.1 expertise including new v4 features and theming
-- **`vite-react-convex-expert.md`** - Integration patterns for the full stack
+## What is this?
 
-### Reference Documentation
-- **`CONVEX.md`** - Comprehensive Convex development guide and best practices
-- **`REACT19.md`** - Complete React 19+ reference with modern patterns
-- **`TS59.MD`** - TypeScript 5.9+ language reference and configuration
-- **`TAILWIND4.md`** - Tailwind CSS 4.1 complete reference and migration guide
+OpenCode Extensions TUI is a comprehensive terminal application that lets you discover, install, and manage OpenCode extensions right from your command line. No browser needed!
 
-## Usage
-
-These agents are designed for:
-- **Global installation** in `~/.config/opencode/agent/` for reuse across projects
-- **Project-specific installation** in `.opencode/agent/` directories
-- **Specialized development** when working with this specific tech stack
-
-Each agent includes YAML frontmatter with usage guidance, mode constraints, and when to invoke the agent.
+Perfect for developers who live in the terminal and want complete control over their OpenCode extension ecosystem with real installation capabilities and persistent state management.
 
 ## Key Features
 
-- **Modern patterns**: Server Components, Actions, React Compiler, Convex reactive backend
-- **Type safety**: Full TypeScript 5.9+ with strict configuration
-- **Performance**: Vite's fast development and optimized builds
-- **Styling**: Tailwind 4.1's CSS-first approach with new utilities
-- **Backend**: Convex's reactive database and serverless functions
+- **Installation Capabilities** - Install extensions via npm, bash scripts, or direct download
+- **Persistent Storage** - SQLite database tracks installation status and metadata
+- **Multiple Installation Methods** - Supports npm packages, bash scripts, GitHub agents, and drop-in extensions
+- **Interactive Installation Flows** - Modal dialogs for installation options and script previews
+- **Configuration Management** - Updates your OpenCode configuration files
+- **Lightning Fast** - Instant search and navigation
+- **Beautiful Interface** - Clean, responsive terminal UI
+- **Smart Search** - Find extensions by name, description, or category
+- **Organized Browsing** - Navigate through curated categories
+- **Keyboard Only** - Full control without touching your mouse
+- **Rich Information** - See downloads, stars, and detailed descriptions
+- **Live Updates** - Refresh to get the latest extension data
+- **Status Tracking** - Installation/uninstallation status with error handling
 
-## Integration
+## Quick Start
 
-These agents work together to provide comprehensive guidance for:
-- Project setup and configuration
-- Component architecture and patterns
-- Database schema and function design
-- Styling and theming
-- Type safety and best practices
-- Performance optimization
+### Prerequisites
 
-Perfect for developers building modern full-stack applications with this cutting-edge technology stack.
+You need [Bun](https://bun.sh/) installed (it's like npm but way faster):
+
+```bash
+curl -fsSL https://bun.sh/install | bash
+```
+
+### Installation & Running
+
+```bash
+# Clone the repository
+git clone https://github.com/IgorWarzocha/Opencode-Extensions-TUI.git
+cd Opencode-Extensions-TUI
+
+# Install dependencies (takes ~10 seconds)
+bun install
+
+# Launch the TUI!
+bun dev
+```
+
+That's it! You're now browsing extensions in your terminal.
+
+## How to Use
+
+### Navigation
+
+| Key | What it does |
+|-----|--------------|
+| `↑` `↓` or `w` `s` | Move up/down through extensions |
+| `←` `→` or `a` `d` or `j` `k` | Switch between categories |
+| `Tab` | Quick category cycling |
+| `Enter` | Install selected extension |
+| `u` | Uninstall selected extension |
+| `i` | Show detailed information |
+| `/` | Start searching |
+| `r` | Refresh extension data |
+| `q` | Quit the application |
+
+### Search Mode
+
+Press `/` to search:
+- Start typing to filter extensions instantly
+- `Enter` to apply search
+- `Escape` to cancel and go back
+
+### Installation
+
+Press `Enter` on any extension to install:
+- **NPM Extensions**: Choose between local or global installation scope
+- **Bash Scripts**: Preview installation scripts before execution
+- **GitHub Agents**: Install directly from GitHub repositories
+- **Drop Extensions**: Direct file-based installation
+
+### Views
+
+1. **List View** - Browse all extensions with key info
+2. **Details View** - Press `i` for full extension details
+3. **Search View** - Press `/` to find specific extensions
+4. **Installation Modals** - Interactive dialogs for installation options
+
+## What You'll See
+
+Each extension card shows:
+- **Name & Author** - Who made it
+- **Stars & Downloads** - Community popularity
+- **Category** - What type of extension it is
+- **Description** - What it does
+- **Status** - Available or marked as installed
+
+**Note**: Extension data is loaded from local JSON files in the repository. Installation status is persisted in a local SQLite database.
+
+## For Developers
+
+Want to contribute or modify the TUI?
+
+```bash
+# Development with hot reload
+bun dev
+
+# Run directly
+bun run src/index.tsx
+```
+
+Built with React 19, OpenTUI, and TypeScript. See [AGENTS.md](./AGENTS.md) for development guidelines.
+
+## Contributing
+
+Found a bug or have an idea? 
+
+1. Open an [Issue](https://github.com/IgorWarzocha/Opencode-Extensions-TUI/issues)
+2. Fork and create a Pull Request
+3. Join the OpenCode community!
+
+## More About OpenCode
+
+- [OpenCode Official Site](https://opencode.ai/)
+- [OpenCode GitHub](https://github.com/sst/opencode)
+- [OpenCode Documentation](https://opencode.ai/docs/)
+- [GitHub Discussions](https://github.com/sst/opencode/discussions)
+
+---
+
+Made for the terminal-loving developer community
+
+If you like this, give it a star on GitHub!
