@@ -1,30 +1,19 @@
 import { t, cyan, dim, bold } from '@opentui/core';
 import { ocTheme } from '../theme';
 import type { Extension } from '../types/extension';
+import { ellipsize, formatCount } from '../utils/text';
+import type { ViewMode } from '../utils/layout';
 
 interface ExtensionCardProps {
   extension: Extension;
   isSelected: boolean;
-  availableWidth: number;
+  mode: ViewMode;
+  maxLine: number;
 }
 
-function ellipsize(text: string, max: number) {
-  if (max <= 0) return '';
-  if (text.length <= max) return text;
-  if (max <= 1) return text.slice(0, max);
-  return text.slice(0, max - 1) + '…';
-}
-
-export function ExtensionCard({ extension, isSelected, availableWidth }: ExtensionCardProps) {
+export function ExtensionCard({ extension, isSelected, mode, maxLine }: ExtensionCardProps) {
   const borderColor = isSelected ? ocTheme.borderActive : ocTheme.border;
   const backgroundColor = isSelected ? ocTheme.element : ocTheme.panel;
-
-  const formatCount = (num: number) => {
-    if (num >= 1000) {
-      return (num / 1000).toFixed(1) + 'k';
-    }
-    return num.toString();
-  };
 
   const nameStyled = isSelected ? bold(cyan(extension.name)) : bold(extension.name);
 
@@ -33,15 +22,6 @@ export function ExtensionCard({ extension, isSelected, availableWidth }: Extensi
   if (extension.featured) badges.push('Featured');
   if (extension.status === 'installed') badges.push('Installed');
   const infoWithBadges = badges.length ? `${infoRaw} • ${badges.join(' • ')}` : infoRaw;
-
-  // Use a safer maxLine to prevent wrapping. availableWidth is the inner width of the container.
-  // We subtract a safety buffer for ANSI codes or rendering quirks.
-  const maxLine = Math.max(20, availableWidth - 4);
-  
-  // Determine layout mode based on available width
-  let mode: 'wide' | 'medium' | 'narrow' = 'narrow';
-  if (maxLine >= 100) mode = 'wide';
-  else if (maxLine >= 50) mode = 'medium';
 
   // Explicit height to prevent layout shifts/scrolling bugs
   // Wide: 1 line + 2 border = 3

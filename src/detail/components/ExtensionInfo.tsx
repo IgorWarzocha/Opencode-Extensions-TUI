@@ -2,6 +2,7 @@ import { t, bold } from '@opentui/core';
 import { ocTheme } from '../../theme';
 import type { GitHubRepo } from '../../services/github';
 import type { Extension } from '../../types/extension';
+import { ellipsize } from '../../utils/text';
 
 interface ExtensionHeaderProps {
   extension: Extension;
@@ -94,7 +95,7 @@ export function ExtensionMetadata({ extension, githubData }: ExtensionMetadataPr
         {topics.length > 0 && (
           <box flexDirection="row" gap={1}>
             <text content={t`${bold('Topics:')} `} fg={ocTheme.textMuted} />
-            <text content={t`${topics.slice(0, 5).join(', ')}${topics.length > 5 ? '...' : ''}`} fg={ocTheme.success} />
+            <text content={t`${ellipsize(topics.join(', '), 50)}`} fg={ocTheme.success} />
           </box>
         )}
 

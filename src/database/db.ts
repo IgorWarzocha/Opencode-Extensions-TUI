@@ -1,5 +1,5 @@
 import { Database } from "bun:sqlite";
-import type { Extension } from "../types/extension";
+import type { Extension, ExtensionStatus } from "../types/extension";
 
 const db = new Database("extensions.sqlite");
 
@@ -200,16 +200,26 @@ export function initDatabase() {
   }
 }
 
+type DbExtensionRow = Omit<Extension, "keywords" | "dependencies" | "featured" | "githubData" | "install_method"> & {
+  keywords: string | null;
+  dependencies: string | null;
+  featured: number | boolean;
+  install_method: string | null;
+};
+
 export function getAllExtensions(): Extension[] {
-  const rows = db.query("SELECT * FROM extensions ORDER BY name ASC").all() as any[];
-  return rows.map(row => ({
-    ...row,
-    keywords: JSON.parse(row.keywords || '[]'),
-    dependencies: JSON.parse(row.dependencies || '[]'),
-    featured: Boolean(row.featured)
-  }));
+  const rows = db.query("SELECT * FROM extensions ORDER BY name ASC").all() as DbExtensionRow[];
+  return rows.map((row) => (
+    {
+      ...row,
+      keywords: JSON.parse(row.keywords ?? "[]"),
+      dependencies: JSON.parse(row.dependencies ?? "[]"),
+      featured: Boolean(row.featured),
+      install_method: row.install_method as Extension["install_method"],
+    } satisfies Extension
+  ));
 }
 
-export function updateExtensionStatus(id: number, status: string) {
+export function updateExtensionStatus(id: number, status: ExtensionStatus) {
   db.run("UPDATE extensions SET status = ? WHERE id = ?", [status, id]);
 }

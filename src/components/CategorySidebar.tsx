@@ -1,19 +1,12 @@
 import { t, bold, dim, cyan } from '@opentui/core';
 import { ocTheme } from '../theme';
+import { CATEGORIES } from '../constants/categories';
 
 interface CategorySidebarProps {
   selectedCategory: string;
 }
 
-export const CATEGORIES = [
-  'All',
-  'Featured',
-  'Tools',
-  'Themes',
-  'Integrations',
-  'Utils',
-  'Updates',
-];
+
 
 export function CategorySidebar({ selectedCategory }: CategorySidebarProps) {
   return (
