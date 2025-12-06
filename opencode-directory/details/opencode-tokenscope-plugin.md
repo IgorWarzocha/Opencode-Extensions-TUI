@@ -16,6 +16,7 @@ updated_at: "2024-12-02"
 keywords: ["opencode", "token-analysis", "cost-tracking", "usage-monitoring", "plugin"]
 category: "Plugin"
 install_command: "curl -sSL https://raw.githubusercontent.com/ramtinJ95/opencode-tokenscope/main/install.sh | bash"
+install_method: "bash"
 curator_notes: null
 version: null
 homepage: "https://github.com/ramtinJ95/opencode-tokenscope"

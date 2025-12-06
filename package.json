@@ -20,7 +20,6 @@
     "marked": "17.0.1",
     "marked-terminal": "^7.3.0",
     "react": "^19.1.1",
-    "terminal-markdown": "^0.0.1",
     "web-tree-sitter": "0.25.10"
   }
 }

@@ -1,4 +1,5 @@
 export type ExtensionStatus = 'available' | 'installed' | 'update_available';
+export type InstallMethod = 'npm' | 'drop' | 'bash';
 
 import type { GitHubRepo } from "../services/github";
 
@@ -24,7 +25,7 @@ export interface Extension {
   language: string | null;
   created_at: string | null;
   updated_at: string | null;
-  status: string;
+  status: ExtensionStatus;
   install_path: string | null;
   dependencies: string[];
   opencode_min_version: string | null;
@@ -32,6 +33,7 @@ export interface Extension {
   curated_rating: number | null;
   curator_notes: string | null;
   install_command: string | null;
+  install_method: InstallMethod | null;
   manifest_json: string | null;
   githubData?: GitHubRepo | null;
 }

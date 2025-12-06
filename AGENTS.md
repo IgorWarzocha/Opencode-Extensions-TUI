@@ -1,25 +1,20 @@
 # Agent Operations Guide
 
-## Build & Development Commands
-- `bun install` - Install dependencies
-- `bun dev` - Start development server with hot reload
-- `bun run src/index.tsx` - Run the application directly
-
-## Code Style Guidelines
-- **Framework**: React 19 with OpenTUI components for terminal UI
-- **TypeScript**: Strict mode enabled, ESNext target, JSX with `@opentui/react` import source
-- **Imports**: Use verbatim module syntax, import OpenTUI from `@opentui/core` and `@opentui/react`
-- **Components**: Use lowercase HTML-like elements (`<box>`, `<text>`) for OpenTUI components
-- **File Structure**: Entry point at `src/index.tsx`, components in `src/components/`, types in `src/types/`
-- **Naming**: PascalCase for React components, camelCase for functions/variables, kebab-case for files
-- **Error Handling**: TypeScript strict mode, null coalescing (`??`) for optional values
-- **State Management**: React hooks (`useState`, `useEffect`), `useKeyboard` for input handling
-- **Styling**: Use `ocTheme` object for consistent colors, `t()` template literal for styled text
-- **Data Loading**: Extension data loaded from JSON files in `opencode-directory/`
-- **Utilities**: Helper functions for ellipsis, count formatting, and responsive layout
-
-## Project Architecture
-- **Runtime**: Bun with TypeScript compilation
-- **UI Framework**: OpenTUI for terminal-based React applications
-- **Entry Point**: `src/index.tsx` creates CLI renderer and renders React root
-- **Data Sources**: JSON files (tools.json, integrations.json, themes.json) for extension metadata
+- Install: `bun install` (root).
+- Dev CLI: `bun dev` (watches `src/index.tsx`).
+- Direct run: `bun run src/index.tsx`.
+- Build: not defined; prefer bundler-driven run; document gaps before adding.
+- Lint/Test: no scripts yet; add Bun `test`/lint first—single test via `bun test path/to.test.ts`.
+- Runtime: React 19 + OpenTUI on Bun ESM.
+- TS: 5.9 strict, `moduleResolution: "bundler"`, `verbatimModuleSyntax`, JSX source `@opentui/react`.
+- Imports: keep ESM with extensions; use `import type` for types; avoid default barrels.
+- Syntax: avoid enums/namespaces/ctor params; prefer `type` aliases, discriminated unions, `satisfies`.
+- Types: no `any`; use `unknown` then narrow; `noUncheckedIndexedAccess` enabled.
+- Components: lowercase OpenTUI elements (`<box>`, `<text>`); components PascalCase; props camelCase; files kebab-case.
+- Styling: use `ocTheme` + `t()` helpers; keep terminal-friendly spacing and contrast.
+- Data: extension metadata from `opencode-directory/` JSON; keep async IO and parsing pure.
+- Error handling: guard nullish values with `??`; surface actionable messages; avoid throwing for control flow.
+- State: React hooks (`useState`, `useEffect`, `useKeyboard`); keep state derivations memo-free unless needed.
+- Modules: entry `src/index.tsx`; main UI `src/App.tsx`; shared utils/types under `src/utils` and `src/types`.
+- Formatting: follow repo defaults/Prettier; stable import order; trailing commas ok.
+- Repo rules: no Cursor or Copilot rule files present.

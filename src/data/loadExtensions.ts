@@ -4,7 +4,7 @@ import type { Extension } from "../types/extension";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const dataDir = join(__dirname, "..", "..", "opencode-directory");
-const files = ["tools.json", "integrations.json", "themes.json"];
+const files = ["tools.json", "integrations.json", "themes.json", "agents.json", "commands.json"];
 
 async function readJson(file: string): Promise<Extension[]> {
   const path = join(dataDir, file);

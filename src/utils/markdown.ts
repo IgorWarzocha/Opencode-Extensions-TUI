@@ -1,12 +1,13 @@
-import terminalMarkdown from "terminal-markdown";
-
-// Render markdown to ANSI/StyledText for terminal display
+/**
+ * Markdown rendering helper. Currently unused in the app; kept as a thin
+ * wrapper to avoid pulling in external dependencies. Returns the input
+ * unchanged so downstream callers can decide rendering strategy.
+ */
 export function renderMarkdown(markdown: string): string {
-  if (!markdown) return "";
-  const width = Math.max(40, Math.min(process.stdout.columns || 80, 120));
-  return terminalMarkdown(markdown, { width }).trimEnd();
+  return markdown;
 }
 
-export const markdownRenderer = {
+export default {
   render: renderMarkdown,
 };
+
