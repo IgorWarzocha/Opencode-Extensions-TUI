@@ -4,6 +4,10 @@
 
 ![Terminal UI](https://img.shields.io/badge/Terminal-Interface-green) ![OpenCode](https://img.shields.io/badge/OpenCode-Extensions-blue) ![Cross Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey)
 
+> **⚠️ Important Disclaimer**: This is currently a **UI demo** showcasing a plugin browser interface for OpenCode extensions. It does not include actual plugin installation, management, or the automated community pipeline for adding and reviewing extensions - these features are planned for future releases.
+
+![OpenCode Extensions TUI Screenshot](./v1.png)
+
 ## What is this?
 
 OpenCode Extensions TUI is a fast, keyboard-driven terminal application that lets you browse, search, and manage OpenCode extensions right from your command line. No browser needed!
@@ -19,6 +23,7 @@ Perfect for developers who live in the terminal and want to quickly discover new
 - **Keyboard Only** - Full control without touching your mouse
 - **Rich Information** - See downloads, stars, and detailed descriptions
 - **Live Updates** - Refresh to get the latest extension data
+- **Installation Tracking** - Mark extensions as installed/uninstalled (UI simulation)
 
 ## Quick Start
 
@@ -53,9 +58,10 @@ That's it! You're now browsing extensions in your terminal.
 | Key | What it does |
 |-----|--------------|
 | `↑` `↓` or `w` `s` | Move up/down through extensions |
-| `←` `→` or `a` `d` | Switch between categories |
+| `←` `→` or `a` `d` or `j` `k` | Switch between categories |
 | `Tab` | Quick category cycling |
-| `Enter` | Install/uninstall selected extension |
+| `Enter` | Mark extension as installed |
+| `u` | Uninstall selected extension |
 | `i` | Show detailed information |
 | `/` | Start searching |
 | `r` | Refresh extension data |
@@ -81,7 +87,9 @@ Each extension card shows:
 - **Stars & Downloads** - Community popularity
 - **Category** - What type of extension it is
 - **Description** - What it does
-- **Status** - Available or already installed
+- **Status** - Available or marked as installed
+
+**Note**: Extension data is loaded from local JSON files in the repository, not from a live API.
 
 ## For Developers
 
