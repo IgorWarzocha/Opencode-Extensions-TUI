@@ -2,8 +2,6 @@
 
 **A powerful terminal interface for discovering and managing OpenCode extensions**
 
-![Terminal UI](https://img.shields.io/badge/Terminal-Interface-green) ![OpenCode](https://img.shields.io/badge/OpenCode-Extensions-blue) ![Cross Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey) ![Installation](https://img.shields.io/badge/Installation-Working-brightgreen) ![Database](https://img.shields.io/badge/Database-SQLite-blue)
-
 > **Community Project**: This is a community-driven project and is not an official SST/Opencode initiative.
 
 > **Beyond Demo**: This has evolved beyond a UI demo and now includes real installation capabilities, persistent storage, and extension lifecycle management. Still under active development.
