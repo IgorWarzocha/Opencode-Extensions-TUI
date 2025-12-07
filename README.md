@@ -4,7 +4,9 @@
 
 ![Terminal UI](https://img.shields.io/badge/Terminal-Interface-green) ![OpenCode](https://img.shields.io/badge/OpenCode-Extensions-blue) ![Cross Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey) ![Installation](https://img.shields.io/badge/Installation-Working-brightgreen) ![Database](https://img.shields.io/badge/Database-SQLite-blue)
 
-> **🔧 Beyond Demo**: This has evolved beyond a UI demo and now includes real installation capabilities, persistent storage, and extension lifecycle management. Still under active development.
+> **Community Project**: This is a community-driven project and is not an official SST/Opencode initiative.
+
+> **Beyond Demo**: This has evolved beyond a UI demo and now includes real installation capabilities, persistent storage, and extension lifecycle management. Still under active development.
 
 ![OpenCode Extensions TUI Screenshot](./v1.png)
 
@@ -123,9 +125,13 @@ Built with React 19, OpenTUI, and TypeScript. See [AGENTS.md](./AGENTS.md) for d
 
 Found a bug or have an idea? 
 
-1. Open an [Issue](https://github.com/IgorWarzocha/Opencode-Extensions-TUI/issues)
-2. Fork and create a Pull Request
-3. Join the OpenCode community!
+**Currently in Peer Review Stage** - We welcome community feedback on UX consistency, keyboard shortcuts, and workflow improvements!
+
+1. **Read [CONTRIBUTING.md](./CONTRIBUTING.md)** - Guidelines for contributions and current focus areas
+2. **Check [FAQ.md](./FAQ.md)** - Detailed workflows and technical documentation  
+3. **Open an [Issue](https://github.com/IgorWarzocha/Opencode-Extensions-TUI/issues)** - Report bugs or suggest improvements
+4. **Fork and create a Pull Request** - Submit your changes
+5. **Join the OpenCode community!**
 
 ## More About OpenCode
 
