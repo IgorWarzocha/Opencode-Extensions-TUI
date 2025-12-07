@@ -1,3 +1,10 @@
+/**
+ * ⚠️  POTENTIALLY OBSOLETE - Candidate for future removal:
+ * - Depends on GitHub service for runtime fetching when READMEs should be cached in SQLite
+ * - New architecture: submission processing pre-fetches all GitHub data during intake
+ * - Consider migrating to use DatabaseService for cached repo metadata instead
+ * - Keep until SQLite-only data flow migration is complete and performance validated
+ */
 import { t, bold } from '@opentui/core';
 import { ocTheme } from '../../theme';
 import type { GitHubRepo } from '../../services/github';

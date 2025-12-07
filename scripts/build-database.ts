@@ -5,11 +5,10 @@ import { join } from "path";
 
 // Configuration
 const EXTENSIONS_ROOT = "./extensions";
-const DETAILS_DIR = "./opencode-directory/details";
 const DB_PATH = "extensions.db";
 
-// Valid categories
-const CATEGORIES = ['plugin', 'agents', 'tool', 'command', 'theme', 'bundle'];
+// Valid categories (plural form)
+const CATEGORIES = ['Plugins', 'Agents', 'Tools', 'Commands', 'Themes', 'Bundles'];
 
 // Helper to convert repo URL to raw content URL
 function getRawReadmeUrl(repoUrl: string): string | null {
@@ -23,19 +22,6 @@ function getRawReadmeUrl(repoUrl: string): string | null {
 }
 
 async function loadReadme(extensionId: string, repoUrl: string): Promise<string> {
-  const mdPath = join(DETAILS_DIR, `${extensionId}.md`);
-  
-  // 1. Try local file first
-  if (existsSync(mdPath)) {
-    try {
-      const content = readFileSync(mdPath, "utf-8");
-      // Strip frontmatter
-      return content.replace(/^[\s\S]*===FRONTMATTER===[\s\S]*?===FRONTMATTER===\s*/, "").trim();
-    } catch (e) {
-      // Ignore and fall back to remote fetch
-    }
-  }
-
   const rawUrl = getRawReadmeUrl(repoUrl);
   
   if (!rawUrl) {
@@ -55,10 +41,6 @@ async function loadReadme(extensionId: string, repoUrl: string): Promise<string>
     }
 
     const text = await response.text();
-    
-    if (!existsSync(DETAILS_DIR)) {
-        mkdirSync(DETAILS_DIR, { recursive: true });
-    }
     return text.trim();
 
   } catch {
@@ -104,12 +86,12 @@ async function main() {
     CREATE INDEX idx_extensions_author ON extensions(author);
 
     INSERT INTO categories (id, name, description) VALUES
-    ('plugin', 'Plugin', 'JavaScript/TypeScript plugins that hook into OpenCode events'),
-    ('agents', 'Agents', 'Specialized AI agents for specific tasks and workflows'),
-    ('tool', 'Tool', 'Custom tools for extended functionality'),
-    ('command', 'Command', 'Custom commands and command extensions'),
-    ('theme', 'Theme', 'Visual themes and color schemes for TUI'),
-    ('bundle', 'Bundle', 'Complete configuration packages and setups');
+    ('Plugins', 'Plugins', 'JavaScript/TypeScript plugins that hook into OpenCode events'),
+    ('Agents', 'Agents', 'Specialized AI agents for specific tasks and workflows'),
+    ('Tools', 'Tools', 'Custom tools for extended functionality'),
+    ('Commands', 'Commands', 'Custom commands and command extensions'),
+    ('Themes', 'Themes', 'Visual themes and color schemes for TUI'),
+    ('Bundles', 'Bundles', 'Complete configuration packages and setups');
   `);
 
   const insertStmt = db.prepare(`
@@ -134,9 +116,15 @@ async function main() {
 
   for (const category of CATEGORIES) {
     const categoryDir = join(EXTENSIONS_ROOT, category);
-    if (!existsSync(categoryDir)) continue;
+    console.log(`🔍 Checking category: ${category} at ${categoryDir}`);
+    
+    if (!existsSync(categoryDir)) {
+      console.log(`❌ Directory not found: ${categoryDir}`);
+      continue;
+    }
 
     const files = readdirSync(categoryDir).filter(f => f.endsWith(".json"));
+    console.log(`📁 Found ${files.length} files in ${categoryDir}:`, files);
     
     for (const file of files) {
       try {

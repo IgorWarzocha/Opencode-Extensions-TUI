@@ -1,0 +1,7 @@
+/**
+ * ⚠️  POTENTIALLY OBSOLETE - Candidate for future removal:
+ * - Empty directory - no longer needed after SQLite migration  
+ * - DatabaseService.ts in services/ handles all database operations
+ * - Consider removing once SQLite architecture is fully validated
+ * - Keep until migration is complete and no legacy database utilities are needed
+ */

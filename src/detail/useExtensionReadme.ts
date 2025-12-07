@@ -1,3 +1,17 @@
+/**
+ * ⚠️  POTENTIALLY OBSOLETE - Candidate for future removal:
+ * - Performs runtime GitHub fetching for READMEs when data is already pre-fetched and stored in SQLite
+ * - New architecture: submission processing fetches READMEs during intake, not at runtime
+ * - Consider migrating component to use cached README data from DatabaseService instead
+ * - Keep until SQLite-only data flow migration is complete and UI performance validated
+ */
+/**
+ * ⚠️  POTENTIALLY OBSOLETE - Candidate for future removal:
+ * - Performs runtime GitHub fetching for READMEs when data is already pre-fetched and stored in SQLite
+ * - New architecture: submission processing fetches READMEs during intake, not at runtime
+ * - Consider migrating component to use cached README data from DatabaseService instead
+ * - Keep until SQLite-only data flow migration is complete and UI performance validated
+ */
 import { useEffect, useState } from 'react';
 import type { Extension } from '../types/extension';
 import type { GitHubRepo } from '../services/github';

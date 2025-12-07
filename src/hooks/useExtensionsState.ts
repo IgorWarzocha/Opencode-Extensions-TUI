@@ -22,12 +22,12 @@ export function useExtensionsState(initialExtensions: Extension[]) {
   const categoryMap: Record<Category, string | null> = {
     All: null,
     Featured: null, // handled specially
-    Plugins: "plugin",
-    Agents: "agents",
-    Commands: "command",
-    Tools: "tool",
-    Themes: "theme",
-    Bundles: "bundle",
+    Plugins: "Plugins",
+    Agents: "Agents",
+    Commands: "Commands",
+    Tools: "Tools",
+    Themes: "Themes",
+    Bundles: "Bundles",
   };
 
   const filteredExtensions = useMemo(() => {

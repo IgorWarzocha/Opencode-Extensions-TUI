@@ -1,6 +1,12 @@
 /**
  * GitHub API service for fetching repository information and managing cached repo data.
  * Handles repository metadata extraction, README fetching, and local caching with markdown generation.
+ * 
+ * ⚠️  POTENTIALLY OBSOLETE - Candidate for future removal:
+ * - References deleted opencode-directory (lines 10-11)
+ * - May conflict with new SQLite-based architecture where READMEs are pre-fetched during submission processing
+ * - Consider removing components should use cached SQLite data instead of runtime GitHub fetching
+ * - Keep until migration to SQLite-only data flow is complete and tested
  */
 import { writeFile, mkdir } from "fs/promises";
 import { dirname, join } from "path";
