@@ -20,5 +20,5 @@
 ## Architecture
 - Entry: `src/index.tsx` → `src/App.tsx`
 - State: React hooks (`useState`, `useEffect`, `useKeyboard`)
-- Data: extension metadata from `opencode-directory/` JSON, keep async IO pure
+- Data: extension metadata from SQLite database via DatabaseService
 - Styling: `ocTheme` + `t()` helpers, terminal-friendly spacing
