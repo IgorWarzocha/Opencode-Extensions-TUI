@@ -29,10 +29,16 @@ export function useInstallFlow(
   const installationService = new InstallationService();
 
   const handleInstall = async (extension: Extension, options: InstallationOptions = {}) => {
+    // Bash extension -> Script Modal for review
+    if (extension.install_method === 'bash') {
+      setPendingInstallExtension(extension);
+      setShowScriptModal(true);
+      return;
+    }
+
     // NPM extension or Agent extension -> Options Modal for global/local choice
     if (
       extension.install_method === 'npm' ||
-      extension.install_method === 'bash' ||
       extension.install_method === 'agents'
     ) {
       setPendingInstallExtension(extension);
@@ -113,7 +119,7 @@ export function useInstallFlow(
       }
     }
 
-    if (pendingInstallExtension.install_method === 'bash' || pendingInstallExtension.install_method === 'agents') {
+    if (pendingInstallExtension.install_method === 'agents') {
       const result = await installationService.install(pendingInstallExtension, { global: isGlobal });
 
       if (result.success) {
