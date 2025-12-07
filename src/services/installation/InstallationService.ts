@@ -1,9 +1,17 @@
+/**
+ * Installation service for managing extension installation and uninstallation operations.
+ * Delegates to method-specific installers (npm, drop, bash, agents) and handles status updates.
+ */
+/**
+ * Installation service for managing extension installation and uninstallation operations.
+ * Delegates to method-specific installers (npm, drop, bash, agents) and handles status updates.
+ */
 import type { Extension } from "../../types/extension";
 import type { InstallationOptions, InstallationResult, StatusUpdateCallback } from "./types.js";
 import { installNpm } from "./npmInstaller.js";
 import { installDrop } from "./dropInstaller.js";
 import { installBash } from "./bashInstaller.js";
-import { installAgent, parseGithubTreeUrl } from "./agentInstaller.js";
+import { installAgent } from "./agentInstaller.js";
 import { executeCommand } from "./commandRunner.js";
 
 /**
@@ -32,11 +40,9 @@ export class InstallationService {
         case "drop":
           return installDrop(extension, options, onStatusUpdate);
         case "bash":
-          // Check if the command is a GitHub tree URL (Agent install)
-          if (extension.install_command && parseGithubTreeUrl(extension.install_command)) {
-             return installAgent(extension, options, onStatusUpdate);
-          }
           return installBash(extension, options, onStatusUpdate);
+        case "agents":
+          return installAgent(extension, options, onStatusUpdate);
         default:
           return {
             success: false,

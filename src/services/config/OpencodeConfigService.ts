@@ -1,3 +1,7 @@
+/**
+ * Configuration service for managing opencode.json plugin configuration files.
+ * Handles plugin additions to both global and local config files with robust JSON manipulation.
+ */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import { homedir } from "os";

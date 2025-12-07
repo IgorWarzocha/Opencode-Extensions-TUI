@@ -1,7 +1,6 @@
 /**
- * Terminal size management hook for responsive layout calculations.
- * Provides terminal dimensions and handles resize events automatically.
- * Follows single responsibility principle by isolating terminal logic.
+ * Hook for managing terminal size and responsive layout calculations.
+ * Provides terminal dimensions, handles resize events, and calculates layout constraints.
  */
 
 import { useState, useEffect } from 'react';

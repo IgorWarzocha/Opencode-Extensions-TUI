@@ -1,3 +1,8 @@
+/**
+ * Status bar showing keyboard shortcuts based on current view.
+ * Displays context-sensitive help for available keyboard actions.
+ */
+
 import { t, dim } from '@opentui/core';
 import { ocTheme } from '../theme';
 

@@ -1,6 +1,6 @@
 /**
- * Extension state management hook for filtering and view selection.
- * Provides category/search filtering, selection, and status updates in one place.
+ * Hook for managing extension state including filtering, selection, and view navigation.
+ * Handles category filtering, search functionality, and maintains selected extension index.
  */
 import { useEffect, useMemo, useState } from "react";
 import type { Category } from "../constants/categories";
@@ -19,18 +19,31 @@ export function useExtensionsState(initialExtensions: Extension[]) {
     setExtensions(initialExtensions);
   }, [initialExtensions]);
 
+  const categoryMap: Record<Category, string | null> = {
+    All: null,
+    Featured: null, // handled specially
+    Plugins: "plugin",
+    Agents: "agents",
+    Commands: "command",
+    Tools: "tool",
+    Themes: "theme",
+    Bundles: "bundle",
+  };
+
   const filteredExtensions = useMemo(() => {
     const query = searchQuery.toLowerCase();
+    const targetCategory = categoryMap[selectedCategory];
+    const isFeatured = selectedCategory === "Featured";
+
     return extensions.filter((ext) => {
       const matchesCategory =
-        selectedCategory === "All" ||
-        ext.category === selectedCategory ||
-        (selectedCategory === "Featured" && ext.featured);
+        targetCategory === null || ext.category === targetCategory;
+      const matchesFeatured = !isFeatured || ext.featured;
       const desc = ext.description?.toLowerCase() ?? "";
       const matchesSearch =
         ext.name.toLowerCase().includes(query) ||
         desc.includes(query);
-      return matchesCategory && matchesSearch;
+      return matchesCategory && matchesFeatured && matchesSearch;
     });
   }, [extensions, searchQuery, selectedCategory]);
 
@@ -42,9 +55,9 @@ export function useExtensionsState(initialExtensions: Extension[]) {
 
   const currentExtension = filteredExtensions[selectedIndex];
 
-  const updateExtensionStatus = (extensionId: number, status: ExtensionStatus) => {
+  const updateExtensionStatus = (extensionId: string, status: ExtensionStatus) => {
     setExtensions((prev) =>
-      prev.map((ext) => (ext.id === extensionId ? { ...ext, status } : ext))
+      prev.map((ext) => (String(ext.id) === String(extensionId) ? { ...ext, status } : ext))
     );
   };
 

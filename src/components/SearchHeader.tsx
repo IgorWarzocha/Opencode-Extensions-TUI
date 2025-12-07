@@ -1,3 +1,8 @@
+/**
+ * Search input header with statistics display.
+ * Shows search prompt, current query, and extension count information.
+ */
+
 import { t, dim } from '@opentui/core';
 import { ocTheme } from '../theme';
 

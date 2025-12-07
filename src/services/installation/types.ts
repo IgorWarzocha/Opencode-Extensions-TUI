@@ -11,22 +11,13 @@ export type { InstallationError } from "./InstallationError";
  * Result type for installation operations.
  * Discriminated union for success/failure handling with proper error types.
  */
-export type InstallationResult = 
-  | { success: true; extensionId: number }
+export type InstallationResult =
+  | { success: true; extensionId: string }
   | { success: false; error: InstallationError };
 
+export type StatusUpdateCallback = (extensionId: string, status: "installed" | "available") => void;
 
-/**
- * Status update callback type for extension state changes.
- * Provides type safety for status update operations.
- */
-export type StatusUpdateCallback = (extensionId: number, status: 'installed' | 'available') => void;
-
-/**
- * Installation method types for different installation approaches.
- * Supports npm, drop-in, and bash-based installations.
- */
-export type InstallationMethod = 'npm' | 'drop' | 'bash' | 'manual';
+export type InstallationMethod = "npm" | "drop" | "bash" | "agents" | "manual";
 
 /**
  * Installation configuration options for flexible installation behavior.
@@ -35,4 +26,6 @@ export type InstallationMethod = 'npm' | 'drop' | 'bash' | 'manual';
 export interface InstallationOptions {
   force?: boolean;
   global?: boolean;
+  customCommand?: string;
+  targetPath?: string;
 }

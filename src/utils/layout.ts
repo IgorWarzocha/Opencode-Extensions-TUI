@@ -1,6 +1,7 @@
 /**
  * Layout utilities for computing responsive terminal layout and view modes.
  * Centralizes mode selection and sizing calculations for cards and lists.
+ * Provides responsive design calculations based on terminal dimensions.
  */
 
 export type ViewMode = "wide" | "medium" | "narrow";

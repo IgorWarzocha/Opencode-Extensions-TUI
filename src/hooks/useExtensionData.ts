@@ -1,10 +1,9 @@
 /**
- * Data loading hook for extension metadata sourced from bundled JSON files.
- * Handles initial load, reloads, and propagates loading/error state for the list view.
- * Keeps the hook focused on data acquisition so downstream hooks manage UI state.
+ * Hook for loading extension data from the SQLite database service.
+ * Manages loading state, error handling, and provides a reload function for extensions.
  */
 import { useCallback, useEffect, useState } from "react";
-import { loadExtensions } from "../data/loadExtensions";
+import { DatabaseService } from "../services/DatabaseService";
 import type { Extension } from "../types/extension";
 import type { AppError } from "../types/errors";
 
@@ -25,7 +24,9 @@ export function useExtensionData(): UseExtensionDataResult {
     setError(null);
 
     try {
-      const loaded = await loadExtensions();
+      // In a real async scenario (e.g. fetching DB from web), this would be awaited.
+      // Local SQLite is synchronous, but we keep the signature async for future compat.
+      const loaded = DatabaseService.getAllExtensions();
       setExtensions(loaded);
       return loaded;
     } catch (err) {

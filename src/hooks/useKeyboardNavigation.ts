@@ -1,6 +1,6 @@
 /**
- * Keyboard navigation hook encapsulating view switching, search entry,
- * category cycling, list navigation, and install/uninstall actions.
+ * Hook for handling keyboard navigation across the extension management interface.
+ * Manages view switching, search input, category navigation, and install/uninstall actions.
  */
 import { useKeyboard } from "@opentui/react";
 import { useRef, useEffect } from "react";

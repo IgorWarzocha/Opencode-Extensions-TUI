@@ -1,3 +1,9 @@
+/**
+ * Handles NPM-based extension installation using package manager commands.
+ * Executes npm install commands for extensions with package.json configurations.
+ * Provides status updates and error handling for npm installation workflows.
+ */
+
 import type { Extension } from "../../types/extension";
 import type { InstallationOptions, InstallationResult, StatusUpdateCallback } from "./types.js";
 import { executeCommand } from "./commandRunner.js";
@@ -7,8 +13,7 @@ export async function installNpm(
   _options: InstallationOptions,
   onStatusUpdate?: StatusUpdateCallback
 ): Promise<InstallationResult> {
-  const packageName = extension.package_name || extension.name;
-  const command = `npm install ${packageName}`;
+  const command = extension.install_command ?? `npm install ${extension.name}`;
 
   const result = await executeCommand(command, extension.id);
 

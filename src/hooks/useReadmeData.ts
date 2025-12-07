@@ -1,14 +1,13 @@
 /**
- * Hook to load README-derived metadata for an extension on demand.
- * Wraps loadReadmeData with loading/error state and exposes merged metadata for rendering.
+ * Hook for managing README data display for extensions.
+ * Provides loading states and error handling for README content that's already embedded in extensions.
  */
-import { useCallback, useEffect, useState } from "react";
-import { loadReadmeData } from "../data/loadReadmeData";
+import { useEffect, useState } from "react";
 import type { AppError } from "../types/errors";
 import type { Extension } from "../types/extension";
 
 interface UseReadmeDataResult {
-  readmeData: Partial<Extension>;
+  readmeData: { readme?: string };
   isLoading: boolean;
   error: AppError | null;
   hasContent: boolean;
@@ -16,57 +15,25 @@ interface UseReadmeDataResult {
 }
 
 export function useReadmeData(extension: Extension): UseReadmeDataResult {
-  const [readmeData, setReadmeData] = useState<Partial<Extension>>({});
+  const [readmeData, setReadmeData] = useState<{ readme?: string }>({ readme: extension.readme });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<AppError | null>(null);
 
-  const load = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const data = await loadReadmeData(
-        extension.name,
-        extension.repository_url,
-        extension.display_name
-      );
-      setReadmeData(data);
-
-      if (!data.long_description) {
-        setError({
-          kind: "not_found",
-          source: "readme",
-          message: "README not found",
-          identifier: extension.name,
-        });
-      }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to load README";
-      setError({
-        kind: "load_failed",
-        source: "readme",
-        message,
-        cause: err,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [extension.display_name, extension.name, extension.repository_url]);
-
   useEffect(() => {
-    setReadmeData({});
-    setError(null);
-  }, [extension.name]);
+    setReadmeData({ readme: extension.readme });
+  }, [extension.readme, extension.id]);
 
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const reload = async () => {
+    // Nothing async to do now; keep signature for compatibility
+    setReadmeData({ readme: extension.readme });
+    return Promise.resolve();
+  };
 
   return {
     readmeData,
     isLoading,
     error,
-    hasContent: Boolean(readmeData.long_description),
-    reload: load,
+    hasContent: Boolean(extension.readme?.trim()),
+    reload,
   };
 }

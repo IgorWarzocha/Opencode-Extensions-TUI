@@ -1,6 +1,18 @@
+/**
+ * Downloads and extracts extensions from remote repository URLs using curl and tar.
+ * Handles drop-in installation by fetching compressed archives and extracting to target directories.
+ * Supports extensions distributed as downloadable archives rather than package manager installs.
+ */
+
+/**
+ * Downloads and extracts extensions from remote repository URLs using curl and tar.
+ * Handles drop-in installation by fetching compressed archives and extracting to target directories.
+ * Supports extensions distributed as downloadable archives rather than package manager installs.
+ */
+
 import type { Extension } from "../../types/extension";
-import type { InstallationOptions, InstallationResult, StatusUpdateCallback } from "./types";
-import { executeCommand } from "./commandRunner";
+import type { InstallationOptions, InstallationResult, StatusUpdateCallback } from "./types.js";
+import { executeCommand } from "./commandRunner.js";
 
 export async function installDrop(
   extension: Extension,

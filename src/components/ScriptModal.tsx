@@ -275,7 +275,7 @@ export function ScriptModal({ extension, isVisible, onClose, onConfirm }: Script
     return <text content={t`${green('[Enter]')} Install  ${red('[Esc]')} Cancel`} />;
   };
 
-  const title = fixedWidthLine(`Install Script: ${extension.display_name}`, contentWidth);
+  const title = fixedWidthLine(`Install Script: ${extension.name}`, contentWidth);
 
   return (
     <box

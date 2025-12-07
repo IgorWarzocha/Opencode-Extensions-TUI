@@ -1,39 +1,26 @@
-export type ExtensionStatus = 'available' | 'installed' | 'update_available';
-export type InstallMethod = 'npm' | 'drop' | 'bash';
+/**
+ * Extension type definitions for the extension management system.
+ * Defines the core data structures for extensions including status, metadata, and installation methods.
+ * Provides type safety for extension data throughout the application.
+ */
 
-import type { GitHubRepo } from "../services/github";
+export type ExtensionStatus = 'available' | 'installed' | 'update_available';
+export type InstallMethod = 'npm' | 'drop' | 'bash' | 'agents' | 'manual';
 
 export interface Extension {
-  id: number;
-  name: string;
-  display_name: string;
+  id: string;
+  name: string;          // Display name
   description: string;
-  long_description: string;
-  source: string;
-  repository_url: string;
-  package_name: string | null;
-  version: string | null;
-  author: string | null;
+  readme: string;        // Markdown content
+  author: string;
   author_url: string | null;
-  homepage: string | null;
-  license: string | null;
-  keywords: string[];
+  repository_url: string;
   category: string;
-  download_count: number;
-  star_count: number;
-  forks: number;
-  language: string | null;
-  created_at: string | null;
-  updated_at: string | null;
-  status: ExtensionStatus;
-  install_path: string | null;
-  dependencies: string[];
-  opencode_min_version: string | null;
-  featured: boolean;
-  curated_rating: number | null;
-  curator_notes: string | null;
   install_command: string | null;
-  install_method: InstallMethod | null;
-  manifest_json: string | null;
-  githubData?: GitHubRepo | null;
+  install_method: string | null; // Cast to InstallMethod in logic if needed
+  featured: boolean;
+
+  // Runtime state
+  status: ExtensionStatus;
+  install_path?: string;  // Path where extension is installed
 }

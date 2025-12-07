@@ -25,16 +25,15 @@ export function ExtensionDetails({ extension, isActive = true }: ExtensionDetail
   const syntaxStyle = createSyntaxStyle();
   const scrollboxRef = useRef<ScrollBoxRenderable | null>(null);
 
-  const merged = useMemo(() => ({ ...extension, ...readmeData }), [extension, readmeData]);
-  const readmeContent = readmeData.long_description ?? "";
+  const readmeContent = readmeData.readme ?? "";
 
   return (
     <box flexDirection="column" flexGrow={1} flexShrink={1} padding={1}>
       <box flexDirection="column" flexShrink={0}>
-        <ExtensionHeader extension={merged} />
-        <ExtensionDescription extension={merged} />
+        <ExtensionHeader extension={extension} />
+        <ExtensionDescription extension={extension} />
         <box marginTop={1}>
-          <ExtensionInstallation extension={merged} />
+          <ExtensionInstallation extension={extension} />
         </box>
 
         {isLoading && (

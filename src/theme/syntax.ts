@@ -1,3 +1,9 @@
+/**
+ * Creates syntax highlighting styles for markdown content and code blocks.
+ * Maps semantic token types to theme colors for consistent text formatting and readability.
+ * Provides styling for headings, links, code elements, and general programming language syntax.
+ */
+
 import { SyntaxStyle, parseColor } from "@opentui/core";
 import { ocTheme } from "../theme";
 

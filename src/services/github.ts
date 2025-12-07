@@ -1,3 +1,7 @@
+/**
+ * GitHub API service for fetching repository information and managing cached repo data.
+ * Handles repository metadata extraction, README fetching, and local caching with markdown generation.
+ */
 import { writeFile, mkdir } from "fs/promises";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";

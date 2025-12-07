@@ -1,3 +1,7 @@
+/**
+ * Hook for managing the installation and uninstallation flow of extensions.
+ * Handles modal states, installation options, and coordinates with the installation service.
+ */
 import { useState } from "react";
 import type { Extension } from "../types/extension";
 import type { InstallationOptions } from "../services/installation/types";
@@ -5,6 +9,15 @@ import { InstallationService } from "../services/installation/InstallationServic
 import { getErrorMessage } from "../services/installation/InstallationError";
 import { OpencodeConfigService } from "../services/config/OpencodeConfigService";
 import type { InstallSelection } from "../components/NpmInstallModal";
+
+function derivePackageName(extension: Extension): string {
+  // Prefer explicit install command when it is a package name; otherwise fall back to name
+  // With the current schema we do not store package_name separately
+  if (extension.install_command && extension.install_method === 'npm') {
+    return extension.install_command;
+  }
+  return extension.name;
+}
 
 export function useInstallFlow(
   setExtensions: React.Dispatch<React.SetStateAction<Extension[]>>
@@ -16,8 +29,12 @@ export function useInstallFlow(
   const installationService = new InstallationService();
 
   const handleInstall = async (extension: Extension, options: InstallationOptions = {}) => {
-    // NPM extension or Agent extension -> Npm Options Modal for global/local choice
-    if (extension.install_method === 'npm' || extension.install_method === 'bash') {
+    // NPM extension or Agent extension -> Options Modal for global/local choice
+    if (
+      extension.install_method === 'npm' ||
+      extension.install_method === 'bash' ||
+      extension.install_method === 'agents'
+    ) {
       setPendingInstallExtension(extension);
       setShowNpmModal(true);
       return;
@@ -26,7 +43,7 @@ export function useInstallFlow(
     // Direct install (e.g. drop)
     await installationService.install(extension, options, (extensionId, status) => {
       setExtensions((prev) =>
-        prev.map((ext) => (ext.id === extensionId ? { ...ext, status } : ext))
+        prev.map((ext) => (String(ext.id) === String(extensionId) ? { ...ext, status } : ext))
       );
     });
   };
@@ -34,7 +51,7 @@ export function useInstallFlow(
   const handleUninstall = async (extension: Extension) => {
     await installationService.uninstall(extension, (extensionId, status) => {
       setExtensions((prev) =>
-        prev.map((ext) => (ext.id === extensionId ? { ...ext, status } : ext))
+        prev.map((ext) => (String(ext.id) === String(extensionId) ? { ...ext, status } : ext))
       );
     });
   };
@@ -79,7 +96,7 @@ export function useInstallFlow(
 
     if (pendingInstallExtension.install_method === 'npm') {
       const configService = new OpencodeConfigService();
-      const packageName = pendingInstallExtension.package_name || pendingInstallExtension.name;
+      const packageName = derivePackageName(pendingInstallExtension);
       
       const result = await configService.addPlugin(packageName, selection.scope);
 
@@ -94,7 +111,9 @@ export function useInstallFlow(
         console.error("Failed to add plugin:", result.message);
         return { success: false, message: result.message };
       }
-    } else if (pendingInstallExtension.install_method === 'bash') {
+    }
+
+    if (pendingInstallExtension.install_method === 'bash' || pendingInstallExtension.install_method === 'agents') {
       const result = await installationService.install(pendingInstallExtension, { global: isGlobal });
 
       if (result.success) {

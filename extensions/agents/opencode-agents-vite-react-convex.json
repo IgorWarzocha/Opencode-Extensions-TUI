@@ -1,0 +1,12 @@
+{
+  "id": "opencode-agents-vite-react-convex",
+  "name": "Vite React Convex Agents",
+  "description": "Specialized agents for Vite, React 19, TypeScript 5.9, Convex, and Tailwind 4.1",
+  "readme": "",
+  "author": "IgorWarzocha",
+  "author_url": "https://github.com/IgorWarzocha",
+  "repository_url": "https://github.com/IgorWarzocha/Opencode-Workflows",
+  "category": "agents",
+  "install_command": "https://github.com/IgorWarzocha/Opencode-Workflows/tree/master/Agents/Vite-React-TS-Convex-Tailwind",
+  "install_method": "agents"
+}

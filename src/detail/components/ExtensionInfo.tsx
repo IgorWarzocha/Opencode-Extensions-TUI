@@ -2,7 +2,6 @@ import { t, bold } from '@opentui/core';
 import { ocTheme } from '../../theme';
 import type { GitHubRepo } from '../../services/github';
 import type { Extension } from '../../types/extension';
-import { ellipsize } from '../../utils/text';
 
 interface ExtensionHeaderProps {
   extension: Extension;
@@ -44,60 +43,23 @@ interface ExtensionMetadataProps {
 
 export function ExtensionMetadata({ extension, githubData }: ExtensionMetadataProps) {
   const author = extension.author || 'Unknown';
-  const downloads = extension.download_count || 0;
-  const stars = extension.star_count || 0;
-  const forks = extension.forks || 0;
-  const license = extension.license || 'Unknown';
-  const language = extension.language || '';
-  const topics = extension.keywords || [];
-  const updated = extension.updated_at ? new Date(extension.updated_at).toLocaleDateString() : '';
 
   const metadataItems: string[] = [
     `Author: ${author}`,
-    license && `License: ${license}`,
-    language && `Language: ${language}`,
-    `★ ${stars}`,
-    `↓ ${downloads}`,
-    forks > 0 && `⑂ ${forks}`,
-    updated && `Updated: ${updated}`,
-  ].filter((item): item is string => Boolean(item));
+  ];
 
   return (
     <box marginBottom={1}>
       <box flexDirection="column" rowGap={0}>
-        {/* Single compact line with all metadata */}
-        <box flexDirection="row" justifyContent="flex-start" gap={2} marginBottom={topics.length > 0 ? 1 : 0}>
-          {metadataItems.map((item, index) => {
-            const isStat = item.match(/^[★↓⑂]/);
-            const isAuthor = item.startsWith('Author:');
-            const isLicense = item.startsWith('License:');
-            const isLanguage = item.startsWith('Language:');
-            const isUpdated = item.startsWith('Updated:');
-            
-            return (
-              <text 
-                key={index}
-                content={t`${item}`}
-                fg={
-                  isStat ? ocTheme.warning :
-                  isAuthor ? ocTheme.secondary :
-                  isLicense ? ocTheme.text :
-                  isLanguage ? ocTheme.warning :
-                  isUpdated ? ocTheme.textMuted :
-                  ocTheme.text
-                } 
-              />
-            );
-          })}
+        <box flexDirection="row" justifyContent="flex-start" gap={2}>
+          {metadataItems.map((item, index) => (
+            <text 
+              key={index}
+              content={t`${item}`}
+              fg={ocTheme.secondary}
+            />
+          ))}
         </box>
-
-        {/* Topics (if any) */}
-        {topics.length > 0 && (
-          <box flexDirection="row" gap={1}>
-            <text content={t`${bold('Topics:')} `} fg={ocTheme.textMuted} />
-            <text content={t`${ellipsize(topics.join(', '), 50)}`} fg={ocTheme.success} />
-          </box>
-        )}
 
         {/* Repository URL (if GitHub) */}
         {githubData?.html_url && (
@@ -125,11 +87,11 @@ interface ExtensionAboutProps {
 }
 
 export function ExtensionAbout({ extension }: ExtensionAboutProps) {
-  if (!extension.long_description) return null;
+  if (!extension.readme) return null;
 
   return (
     <box marginBottom={1}>
-      <text content={t`${extension.long_description}`} />
+      <text content={t`${extension.readme}`} />
     </box>
   );
 }
@@ -153,17 +115,3 @@ export function ExtensionInstallation({ extension }: ExtensionInstallationProps)
   );
 }
 
-interface ExtensionCuratorNotesProps {
-  extension: Extension;
-}
-
-export function ExtensionCuratorNotes({ extension }: ExtensionCuratorNotesProps) {
-  if (!extension.curator_notes) return null;
-
-  return (
-    <box marginTop={1}>
-      <text content={t`${bold('Curator Notes:')} `} fg={ocTheme.textMuted} />
-      <text content={t`${extension.curator_notes}`} />
-    </box>
-  );
-}

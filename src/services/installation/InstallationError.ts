@@ -4,12 +4,12 @@
  */
 export type InstallationError =
   | { type: 'COMMAND_FAILED'; command: string; message: string }
-  | { type: 'EXTENSION_NOT_FOUND'; extensionId: number }
-  | { type: 'ALREADY_INSTALLED'; extensionId: number }
+  | { type: 'EXTENSION_NOT_FOUND'; extensionId: string }
+  | { type: 'ALREADY_INSTALLED'; extensionId: string }
   | { type: 'DEPENDENCY_ERROR'; dependency: string; message: string }
-  | { type: 'PERMISSION_DENIED'; extensionId: number }
-  | { type: 'NETWORK_ERROR'; extensionId: number; message: string }
-  | { type: 'UNKNOWN_ERROR'; extensionId: number; message: string };
+  | { type: 'PERMISSION_DENIED'; extensionId: string }
+  | { type: 'NETWORK_ERROR'; extensionId: string; message: string }
+  | { type: 'UNKNOWN_ERROR'; extensionId: string; message: string };
 
 export function getErrorMessage(error: InstallationError): string {
   switch (error.type) {

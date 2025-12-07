@@ -1,3 +1,9 @@
+/**
+ * Defines the core color palette and theme configuration for the application UI.
+ * Provides semantic color tokens for backgrounds, text, borders, and interactive elements.
+ * Ensures consistent visual styling across all components with a dark terminal-friendly color scheme.
+ */
+
 export const ocTheme = {
   background: "#0b0b0f",
   panel: "#14141b",

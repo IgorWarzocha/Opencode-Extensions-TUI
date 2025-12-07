@@ -1,3 +1,8 @@
+/**
+ * Individual extension card component with responsive layout modes.
+ * Adapts display format (wide/medium/narrow) based on available terminal width.
+ */
+
 import { t, cyan, dim, bold } from '@opentui/core';
 import { ocTheme } from '../theme';
 import type { Extension } from '../types/extension';
@@ -17,9 +22,8 @@ export function ExtensionCard({ extension, isSelected, mode, maxLine }: Extensio
 
   const nameStyled = isSelected ? bold(cyan(extension.name)) : bold(extension.name);
 
-  const infoRaw = `@${extension.author} • Stars ${extension.star_count} • Downloads ${formatCount(extension.download_count)} • v${extension.version}`;
+  const infoRaw = `@${extension.author}`;
   const badges: string[] = [];
-  if (extension.featured) badges.push('Featured');
   if (extension.status === 'installed') badges.push('Installed');
   const infoWithBadges = badges.length ? `${infoRaw} • ${badges.join(' • ')}` : infoRaw;
 

@@ -1,6 +1,18 @@
+/**
+ * Executes custom bash commands for extension installation workflows.
+ * Supports flexible installation through user-defined or extension-provided shell commands.
+ * Provides error handling and status updates for bash-based installation processes.
+ */
+
+/**
+ * Executes custom bash commands for extension installation workflows.
+ * Supports flexible installation through user-defined or extension-provided shell commands.
+ * Provides error handling and status updates for bash-based installation processes.
+ */
+
 import type { Extension } from "../../types/extension";
-import type { InstallationOptions, InstallationResult, StatusUpdateCallback } from "./types";
-import { executeCommand } from "./commandRunner";
+import type { InstallationOptions, InstallationResult, StatusUpdateCallback } from "./types.js";
+import { executeCommand } from "./commandRunner.js";
 
 export async function installBash(
   extension: Extension,

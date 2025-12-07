@@ -1,0 +1,26 @@
+[
+  {
+    "id": "ramtinJ95_opencode-tokenscope",
+    "name": "TokenScope",
+    "description": "Comprehensive token usage analysis and cost tracking for opencode sessions",
+    "readme": "",
+    "author": "ramtinJ95",
+    "author_url": "https://github.com/ramtinJ95",
+    "repository_url": "https://github.com/ramtinJ95/opencode-tokenscope",
+    "category": "tool",
+    "install_command": "curl -sSL https://raw.githubusercontent.com/ramtinJ95/opencode-tokenscope/main/install.sh | bash",
+    "install_method": "bash"
+  },
+  {
+    "id": "Tarquinen_opencode-dynamic-context-pruning",
+    "name": "Dynamic Context Pruning",
+    "description": "Dynamic context pruning plugin for OpenCode - intelligently manages conversation context to optimize token usage",
+    "readme": "",
+    "author": "Tarquinen",
+    "author_url": "https://github.com/Tarquinen",
+    "repository_url": "https://github.com/Tarquinen/opencode-dynamic-context-pruning",
+    "category": "tool",
+    "install_command": "npm install @tarquinen/opencode-dcp",
+    "install_method": "npm"
+  }
+]

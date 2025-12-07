@@ -192,7 +192,7 @@ export function NpmInstallModal({ extension, isVisible, onClose, onConfirm }: Np
       padding={1}
     >
       <box flexShrink={0}>
-        <text content={t`${bold(`Install ${extension.display_name}`)}`} />
+        <text content={t`${bold(`Install ${extension.name}`)}`} />
       </box>
 
       {renderContent()}

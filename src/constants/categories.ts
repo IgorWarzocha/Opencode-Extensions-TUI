@@ -11,13 +11,12 @@
 export const CATEGORIES = [
   'All',
   'Featured',
+  'Plugins',
   'Agents',
   'Commands',
   'Tools',
   'Themes',
-  'Integrations',
-  'Utils',
-  'Updates',
+  'Bundles',
 ] as const;
 
 /**

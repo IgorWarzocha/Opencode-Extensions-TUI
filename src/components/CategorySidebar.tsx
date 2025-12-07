@@ -1,3 +1,8 @@
+/**
+ * Category filter sidebar with selection highlighting.
+ * Displays available extension categories and highlights the currently selected one.
+ */
+
 import { t, bold, dim, cyan } from '@opentui/core';
 import { ocTheme } from '../theme';
 import { CATEGORIES } from '../constants/categories';

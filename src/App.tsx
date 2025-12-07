@@ -1,3 +1,9 @@
+/**
+ * Main application component that orchestrates the extension browser interface.
+ * Manages the overall application state including extensions, search, categories, and modal interactions.
+ * Coordinates between various UI components and handles keyboard navigation and installation flows.
+ */
+
 import { useEffect, useState } from "react";
 import type { Extension } from "./types/extension";
 import { SearchHeader } from "./components/SearchHeader";
