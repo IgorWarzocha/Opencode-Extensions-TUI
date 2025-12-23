@@ -1,64 +1,47 @@
 import { t, dim, bold, cyan } from "@opentui/core";
-import { useKeyboard } from "@opentui/react";
 import { useState, useEffect } from "react";
 import { ocTheme } from "../../theme";
 import { parseObjectSection, toggleBlock, removeItem, type ConfigItem } from "../../utils/config-parser";
 import { ScopedJsonEditor } from "./ScopedJsonEditor";
 import { parseJSONC } from "../../utils/json";
+import { useScrollableList } from "../../hooks/useScrollableList";
 
 interface SectionListEditorProps {
   rawContent: string;
-  sectionKey: string; // e.g., "provider" or "agent"
+  sectionKey: string;
   onChange: (newRaw: string) => void;
   height: number;
 }
 
 export function SectionListEditor({ rawContent, sectionKey, onChange, height }: SectionListEditorProps) {
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [scrollRow, setScrollRow] = useState(0);
   const [items, setItems] = useState<ConfigItem[]>([]);
   const [editingItem, setEditingItem] = useState<ConfigItem | null>(null);
 
   useEffect(() => {
-    const parsed = parseObjectSection(rawContent, sectionKey);
-    setItems(parsed);
+    setItems(parseObjectSection(rawContent, sectionKey));
   }, [rawContent, sectionKey]);
 
-  // Adjust scroll
-  if (selectedIndex < scrollRow) {
-    setScrollRow(selectedIndex);
-  } else if (selectedIndex >= scrollRow + height) {
-    setScrollRow(selectedIndex - height + 1);
-  }
-
-  useKeyboard((key) => {
-    if (editingItem) return; // Handled by ScopedJsonEditor
-
-    if (key.name === "up") {
-      setSelectedIndex((prev) => Math.max(0, prev - 1));
-    } else if (key.name === "down") {
-      setSelectedIndex((prev) => Math.min(Math.max(0, items.length - 1), prev + 1));
-    }
-
-    if (items.length === 0) return;
-    const item = items[selectedIndex];
-    if (!item) return;
-
-    if (key.name === "e" || key.name === "d" || key.name === "space") {
-        const newState = !item.enabled;
-        const newRaw = toggleBlock(rawContent, item.startLine, item.endLine, newState);
-        onChange(newRaw);
-    } else if (key.name === "r" || key.name === "delete") {
-        const newRaw = removeItem(rawContent, item.startLine, item.endLine);
-        onChange(newRaw);
-        setSelectedIndex(Math.min(selectedIndex, Math.max(0, items.length - 2)));
-    } else if (key.name === "return" || key.name === "enter") {
-        if (item.enabled) {
-            setEditingItem(item);
-        }
-    } else if (key.name === "escape" && editingItem) {
+  const handleAction = (action: string, item: ConfigItem) => {
+    if (action === "e" || action === "d" || action === "space") {
+      const newState = !item.enabled;
+      const newRaw = toggleBlock(rawContent, item.startLine, item.endLine, newState);
+      onChange(newRaw);
+    } else if (action === "r" || action === "delete") {
+      const newRaw = removeItem(rawContent, item.startLine, item.endLine);
+      onChange(newRaw);
+    } else if (action === "return" || action === "enter") {
+      if (item.enabled) {
+        setEditingItem(item);
+      }
+    } else if (action === "escape" && editingItem) {
         setEditingItem(null);
     }
+  };
+
+  const { selectedIndex, scrollRow } = useScrollableList({
+    items,
+    height,
+    onAction: handleAction
   });
 
   const handleJsonSave = (newData: any) => {
@@ -67,11 +50,9 @@ export function SectionListEditor({ rawContent, sectionKey, onChange, height }: 
       const lines = rawContent.split('\n');
       const startLine = lines[editingItem.startLine] || "";
       const indentMatch = startLine.match(/^\s*/);
-      const indent = indentMatch ? indentMatch[0] : "    "; // default 4 spaces
+      const indent = indentMatch ? indentMatch[0] : "    ";
       
       const jsonString = JSON.stringify(newData, null, 2);
-      // Indent every line of jsonString
-      // We assume jsonString starts at indent level 0 relative to itself
       const indentedJson = jsonString.split('\n').map((l, i) => i === 0 ? l : indent + l).join('\n');
       
       const keyPart = `"${editingItem.key}": `;
@@ -83,7 +64,6 @@ export function SectionListEditor({ rawContent, sectionKey, onChange, height }: 
       const replacementStr = replacement + (hasComma ? ',' : '');
       const finalBlock = indent + replacementStr;
       
-      // Splice lines
       lines.splice(editingItem.startLine, (editingItem.endLine - editingItem.startLine) + 1, finalBlock);
       onChange(lines.join('\n'));
       setEditingItem(null);

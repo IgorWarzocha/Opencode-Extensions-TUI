@@ -32,6 +32,7 @@ export function CoreEditor({ config, onChange }: CoreEditorProps) {
   const activeField = FIELDS[selectedIndex];
 
   useKeyboard((key) => {
+    // Safety check for activeField
     if (!activeField) return;
 
     if (isEditing) {
@@ -66,6 +67,7 @@ export function CoreEditor({ config, onChange }: CoreEditorProps) {
       } else {
         // Text
         const val = config[activeField.key];
+        // Ensure strictly string
         const valStr = (typeof val === "string" ? val : "") || "";
         setEditValue(valStr);
         setIsEditing(true);

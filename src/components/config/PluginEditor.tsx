@@ -1,8 +1,8 @@
 import { t, dim, bold, cyan } from "@opentui/core";
-import { useKeyboard } from "@opentui/react";
-import { useState, useEffect } from "react";
 import { ocTheme } from "../../theme";
-import { parseArraySection, toggleLine, removeItem, type ConfigItem } from "../../utils/config-parser";
+import { toggleLine, removeItem, type ConfigItem, parseArraySection } from "../../utils/config-parser";
+import { useScrollableList } from "../../hooks/useScrollableList";
+import { useState, useEffect } from "react";
 
 interface PluginEditorProps {
   rawContent: string;
@@ -11,61 +11,42 @@ interface PluginEditorProps {
 }
 
 export function PluginEditor({ rawContent, onChange, height }: PluginEditorProps) {
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [scrollRow, setScrollRow] = useState(0);
   const [items, setItems] = useState<ConfigItem[]>([]);
 
   useEffect(() => {
-    const parsed = parseArraySection(rawContent, "plugin");
-    setItems(parsed);
+    setItems(parseArraySection(rawContent, "plugin"));
   }, [rawContent]);
 
-  const list = items;
-
-  // Adjust scroll when selection changes
-  if (selectedIndex < scrollRow) {
-    setScrollRow(selectedIndex);
-  } else if (selectedIndex >= scrollRow + height) {
-    setScrollRow(selectedIndex - height + 1);
-  }
-
-  useKeyboard((key) => {
-    // Navigation
-    if (key.name === "up") {
-      setSelectedIndex((prev) => Math.max(0, prev - 1));
-    } else if (key.name === "down") {
-      setSelectedIndex((prev) => Math.min(Math.max(0, list.length - 1), prev + 1));
-    } 
-    
-    // Actions
-    if (list.length === 0) return;
-    const item = list[selectedIndex];
-    if (!item) return;
-
-    if (key.name === "e" || key.name === "d" || key.name === "space") {
-        const newState = !item.enabled;
-        const newRaw = toggleLine(rawContent, item.startLine, newState);
-        onChange(newRaw);
-    } else if (key.name === "r" || key.name === "delete") {
-        const newRaw = removeItem(rawContent, item.startLine, item.endLine);
-        onChange(newRaw);
-        setSelectedIndex(Math.min(selectedIndex, Math.max(0, list.length - 2)));
+  const handleAction = (action: string, item: ConfigItem) => {
+    if (action === "e" || action === "d" || action === "space") {
+      const newState = !item.enabled;
+      const newRaw = toggleLine(rawContent, item.startLine, newState);
+      onChange(newRaw);
+    } else if (action === "r" || action === "delete") {
+      const newRaw = removeItem(rawContent, item.startLine, item.endLine);
+      onChange(newRaw);
     }
+  };
+
+  const { selectedIndex, scrollRow } = useScrollableList({
+    items,
+    height,
+    onAction: handleAction
   });
 
   return (
     <box flexDirection="column" flexGrow={1} padding={1} borderStyle="single" borderColor={ocTheme.border}>
       <box marginBottom={1} flexDirection="row" justifyContent="space-between">
         <text content={t`${bold("Plugins (Parsed from Raw)")}`} />
-        <text content={t`${dim(`${list.length} entries`)}`} />
+        <text content={t`${dim(`${items.length} entries`)}`} />
       </box>
       
       <box flexDirection="column" height={height} overflow="hidden">
-        {list.length === 0 && (
+        {items.length === 0 && (
            <text content={t`${dim("No plugins found in config.")}`} />
         )}
         
-        {list.slice(scrollRow, scrollRow + height).map((plugin, idx) => {
+        {items.slice(scrollRow, scrollRow + height).map((plugin, idx) => {
           const absoluteIdx = scrollRow + idx;
           const isSelected = absoluteIdx === selectedIndex;
           
@@ -76,7 +57,6 @@ export function PluginEditor({ rawContent, onChange, height }: PluginEditorProps
               display = plugin.key;
           }
 
-          // Apply styling
           const cursor = isSelected ? bold(cyan("> ")) : "  ";
           const content = !plugin.enabled ? dim(display) : bold(display);
           
