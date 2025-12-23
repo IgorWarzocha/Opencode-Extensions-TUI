@@ -36,3 +36,6 @@ temp/
 
 # Test files
 test-markdown.tsx
+
+# Local Development
+opentui
