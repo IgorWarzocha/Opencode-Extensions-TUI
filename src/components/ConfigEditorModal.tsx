@@ -12,6 +12,7 @@ import { ScopedJsonEditor } from "./config/ScopedJsonEditor";
 import { RawConfigEditor } from "./config/RawConfigEditor";
 import { SectionListEditor } from "./config/SectionListEditor";
 import { parseJSONC } from "../utils/json";
+import { updateTopLevelKeys } from "../utils/config-parser";
 import { type ConfigItem } from "../utils/config-parser";
 
 interface ConfigEditorModalProps {
@@ -73,10 +74,32 @@ export function ConfigEditorModal({ isVisible, onClose }: ConfigEditorModalProps
 
   const saveConfig = (newConfig: OpencodeConfig) => {
     try {
-      const json = JSON.stringify(newConfig, null, 2);
-      configService.writeConfig(scope, json);
+      // Compare with current config to find changed keys
+      const changedKeys: Record<string, unknown> = {};
+      const allKeys = new Set([...Object.keys(config), ...Object.keys(newConfig)]);
+      
+      for (const key of allKeys) {
+        const oldVal = config[key as keyof OpencodeConfig];
+        const newVal = newConfig[key as keyof OpencodeConfig];
+        
+        // Simple comparison - stringify for deep equality check
+        if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
+          changedKeys[key] = newVal;
+        }
+      }
+      
+      // Update only changed keys in raw content (preserves comments!)
+      let updatedRaw: string;
+      if (Object.keys(changedKeys).length > 0) {
+        updatedRaw = updateTopLevelKeys(rawContent, changedKeys);
+      } else {
+        // No changes, keep existing
+        updatedRaw = rawContent;
+      }
+      
+      configService.writeConfig(scope, updatedRaw);
       setConfig(newConfig);
-      setRawContent(json);
+      setRawContent(updatedRaw);
       setMessage({ text: "Saved!", type: "success" });
       setTimeout(() => setMessage(null), 2000);
     } catch (e) {

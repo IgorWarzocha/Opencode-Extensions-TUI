@@ -24,10 +24,12 @@ export function useScrollableList<T>({ items, height, initialIndex = 0, onSelect
   const [scrollRow, setScrollRow] = useState(0);
 
   // Auto-scroll logic
-  if (selectedIndex < scrollRow) {
-    setScrollRow(selectedIndex);
-  } else if (selectedIndex >= scrollRow + height) {
-    setScrollRow(selectedIndex - height + 1);
+  if (items.length > 0 && height > 0) {
+    if (selectedIndex < scrollRow) {
+      setScrollRow(selectedIndex);
+    } else if (selectedIndex >= scrollRow + height) {
+      setScrollRow(selectedIndex - height + 1);
+    }
   }
 
   useKeyboard((key) => {

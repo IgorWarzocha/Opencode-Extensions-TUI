@@ -22,8 +22,15 @@ import { useExtensionData } from "./hooks/useExtensionData";
 import { calculateLayout } from "./utils/layout";
 import { useInstallFlow } from "./hooks/useInstallFlow";
 
+import { metadataService } from "./services/MetadataService.js";
+
 export default function App() {
   const { extensions: loadedExtensions, reloadExtensions: reloadExtensionData } = useExtensionData();
+
+  useEffect(() => {
+    // Start fetching metadata in background
+    metadataService.init();
+  }, []);
 
   const {
     extensions,

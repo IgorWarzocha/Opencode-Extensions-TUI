@@ -1,4 +1,4 @@
-import { CodeEditor } from "../ui/CodeEditor";
+import { CodeEditor } from "../ui/CodeEditor.js";
 
 interface RawConfigEditorProps {
   initialContent: string;
@@ -12,7 +12,9 @@ export function RawConfigEditor({ initialContent, onSave, height }: RawConfigEdi
       initialContent={initialContent} 
       onSave={onSave} 
       height={height} 
-      label="Raw Editor (Comments Supported)" 
+      label="Raw Editor (Comments Supported)"
+      language="json"
+      autoFormat={true}
     />
   );
 }
