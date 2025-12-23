@@ -12,8 +12,8 @@ import { ScopedJsonEditor } from "./config/ScopedJsonEditor";
 import { RawConfigEditor } from "./config/RawConfigEditor";
 import { SectionListEditor } from "./config/SectionListEditor";
 import { parseJSONC } from "../utils/json";
-import { updateTopLevelKeys } from "../utils/config-parser";
-import { type ConfigItem } from "../utils/config-parser";
+import { updateTopLevelKeys } from "../utils/config-parser/top-level-updates.js";
+import type { ConfigItem } from "../utils/config-parser/types.js";
 
 interface ConfigEditorModalProps {
   isVisible: boolean;

@@ -6,10 +6,14 @@
 import type { Extension } from "../types/extension";
 import type { Category } from "../constants/categories";
 import { useKeyboardNavigation } from "../hooks/useKeyboardNavigation";
+import type { KeybindMode, KeybindStatus } from "../keybinds/keybind-types.js";
 
 export type View = "list" | "details" | "search";
 
 export interface AppKeyboardHandlerProps {
+  keybindMode: KeybindMode;
+  onToggleKeybindMode: () => void;
+  onKeybindStatusChange?: (status: KeybindStatus) => void;
   view: View;
   setView: (view: View) => void;
   searchQuery: string;

@@ -1,6 +1,9 @@
 import { t, dim, bold, cyan } from "@opentui/core";
 import { ocTheme } from "../../theme";
-import { toggleLine, removeItem, type ConfigItem, parseArraySection } from "../../utils/config-parser";
+import { toggleLine } from "../../utils/config-parser/comment-toggle.js";
+import { parseArraySection } from "../../utils/config-parser/array-section.js";
+import { removeItem } from "../../utils/config-parser/remove-item.js";
+import type { ConfigItem } from "../../utils/config-parser/types.js";
 import { useScrollableList } from "../../hooks/useScrollableList";
 import { useState, useEffect } from "react";
 

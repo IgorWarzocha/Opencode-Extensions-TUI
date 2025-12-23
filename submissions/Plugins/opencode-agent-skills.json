@@ -1,0 +1,12 @@
+{
+  "id": "opencode-agent-skills",
+  "name": "Agent Skills Framework",
+  "description": "Agent skills framework for OpenCode - manage and organize custom agent capabilities",
+  "author": "sst",
+  "author_url": "https://github.com/sst",
+  "repository_url": "https://github.com/sst/opencode",
+  "category": "Plugins",
+  "install_command": "npm install opencode-agent-skills",
+  "install_method": "npm",
+  "readme": ""
+}

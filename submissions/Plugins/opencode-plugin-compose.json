@@ -1,0 +1,12 @@
+{
+  "id": "opencode-plugin-compose",
+  "name": "Plugin Compose",
+  "description": "Compose multiple opencode plugins into a single plugin that runs all hooks in sequence",
+  "author": "ericc-ch",
+  "author_url": "https://github.com/ericc-ch",
+  "repository_url": "https://github.com/ericc-ch/opencode-plugins",
+  "category": "Plugins",
+  "install_command": "npm install opencode-plugin-compose",
+  "install_method": "npm",
+  "readme": ""
+}

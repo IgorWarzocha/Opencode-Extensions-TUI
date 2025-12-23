@@ -1,0 +1,12 @@
+{
+  "id": "jenslys_opencode-gemini-auth",
+  "name": "Gemini OAuth Plugin",
+  "description": "Authenticate OpenCode with your Google account to use your existing Gemini plan and quotas (including free tier) directly within OpenCode",
+  "author": "jenslys",
+  "author_url": "https://github.com/jenslys",
+  "repository_url": "https://github.com/jenslys/opencode-gemini-auth",
+  "category": "Plugins",
+  "install_command": "npm install opencode-gemini-auth",
+  "install_method": "npm",
+  "readme": ""
+}

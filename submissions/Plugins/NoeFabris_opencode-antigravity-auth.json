@@ -1,0 +1,12 @@
+{
+  "id": "NoeFabris_opencode-antigravity-auth",
+  "name": "Antigravity OAuth Plugin",
+  "description": "Google Antigravity OAuth authentication plugin with multi-account load balancing and support for multiple Google accounts",
+  "author": "NoeFabris",
+  "author_url": "https://github.com/NoeFabris",
+  "repository_url": "https://github.com/NoeFabris/opencode-antigravity-auth",
+  "category": "Plugins",
+  "install_command": "npm install opencode-antigravity-auth",
+  "install_method": "npm",
+  "readme": ""
+}

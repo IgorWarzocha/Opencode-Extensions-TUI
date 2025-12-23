@@ -1,0 +1,12 @@
+{
+  "id": "n8n-nodes-opencode",
+  "name": "N8N Workflow Integration",
+  "description": "N8N workflow integration nodes for OpenCode",
+  "author": "ericc-ch",
+  "author_url": "https://github.com/ericc-ch",
+  "repository_url": "https://github.com/ericc-ch/opencode-plugins",
+  "category": "Plugins",
+  "install_command": "npm install n8n-nodes-opencode",
+  "install_method": "npm",
+  "readme": ""
+}

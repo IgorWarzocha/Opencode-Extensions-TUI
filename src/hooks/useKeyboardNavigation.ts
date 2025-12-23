@@ -3,20 +3,96 @@
  * Manages view switching, search input, category navigation, and install/uninstall actions.
  */
 import { useKeyboard } from "@opentui/react";
-import { useRef, useEffect } from "react";
-import { appendFileSync } from "fs";
+import { useEffect, useRef } from "react";
 import { CATEGORIES, type Category } from "../constants/categories";
 import type { Extension } from "../types/extension";
-
-const DEBUG_FILE = "/tmp/extensionstui-debug.log";
-function debug(msg: string, data?: unknown) {
-  const line = `[${new Date().toISOString()}] ${msg}${data ? " " + JSON.stringify(data) : ""}\n`;
-  appendFileSync(DEBUG_FILE, line);
-}
+import type { KeybindMode, KeybindStatus } from "../keybinds/keybind-types.js";
+import {
+  buildKeybindIndex,
+  extractSequenceToken,
+  formatEventChord,
+  getKeybindSet,
+  hasModifier,
+  isDigitKey,
+  isLeaderKey,
+} from "../keybinds/keybinds.js";
 
 export type View = "list" | "details" | "search";
 
+type SequenceState = {
+  buffer: string[];
+  lastKeyAt: number;
+  leaderActive: boolean;
+  leaderAt: number;
+  countBuffer: string;
+};
+
+type ActionId =
+  | "quit"
+  | "openSearch"
+  | "openDetails"
+  | "closeDetails"
+  | "install"
+  | "uninstall"
+  | "refresh"
+  | "openConfig"
+  | "categoryPrev"
+  | "categoryNext"
+  | "moveUp"
+  | "moveDown"
+  | "moveTop"
+  | "moveBottom"
+  | "toggleKeybindMode";
+
+const VIEW_ACTION_PRIORITY: Record<View, ActionId[]> = {
+  list: [
+    "openDetails",
+    "install",
+    "openSearch",
+    "categoryPrev",
+    "categoryNext",
+    "moveUp",
+    "moveDown",
+    "moveTop",
+    "moveBottom",
+    "refresh",
+    "uninstall",
+    "openConfig",
+    "toggleKeybindMode",
+    "quit",
+  ],
+  details: [
+    "closeDetails",
+    "install",
+    "openSearch",
+    "refresh",
+    "openConfig",
+    "toggleKeybindMode",
+    "quit",
+  ],
+  search: [
+    "openDetails",
+    "closeDetails",
+    "toggleKeybindMode",
+    "quit",
+  ],
+};
+
+const SEQUENCE_TIMEOUT_MS = 600;
+const LEADER_TIMEOUT_MS = 1000;
+
+const resolveActionForView = (view: View, actions: ActionId[]): ActionId | null => {
+  if (actions.length === 0) return null;
+  for (const candidate of VIEW_ACTION_PRIORITY[view]) {
+    if (actions.includes(candidate)) return candidate;
+  }
+  return actions[0] ?? null;
+};
+
 export interface KeyboardNavigationConfig {
+  keybindMode: KeybindMode;
+  onToggleKeybindMode: () => void;
+  onKeybindStatusChange?: (status: KeybindStatus) => void;
   view: View;
   setView: (next: View) => void;
   searchQuery: string;
@@ -37,15 +113,73 @@ export interface KeyboardNavigationConfig {
   isBlocked?: boolean;
 }
 
+const buildStatus = (state: SequenceState): KeybindStatus => {
+  return {
+    leaderActive: state.leaderActive,
+    sequence: state.buffer,
+    count: state.countBuffer ? Math.max(parseInt(state.countBuffer, 10), 1) : null,
+  };
+};
+
+const statusEquals = (a: KeybindStatus, b: KeybindStatus): boolean => {
+  if (a.leaderActive !== b.leaderActive) return false;
+  if (a.count !== b.count) return false;
+  if (a.sequence.length !== b.sequence.length) return false;
+  return a.sequence.every((value, index) => value === b.sequence[index]);
+};
+
 export function useKeyboardNavigation(config: KeyboardNavigationConfig) {
-  // Use a ref to always access the latest config, avoiding stale closures
   const configRef = useRef(config);
+  const stateRef = useRef<SequenceState>({
+    buffer: [],
+    lastKeyAt: 0,
+    leaderActive: false,
+    leaderAt: 0,
+    countBuffer: "",
+  });
+  const statusRef = useRef<KeybindStatus>(buildStatus(stateRef.current));
+
   useEffect(() => {
     configRef.current = config;
   });
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const { onKeybindStatusChange } = configRef.current;
+      if (!onKeybindStatusChange) return;
+
+      const now = Date.now();
+      const state = stateRef.current;
+      let changed = false;
+
+      if (state.leaderActive && now - state.leaderAt > LEADER_TIMEOUT_MS) {
+        state.leaderActive = false;
+        changed = true;
+      }
+
+      if (now - state.lastKeyAt > SEQUENCE_TIMEOUT_MS && state.buffer.length > 0) {
+        state.buffer = [];
+        state.countBuffer = "";
+        changed = true;
+      }
+
+      if (changed) {
+        const nextStatus = buildStatus(state);
+        if (!statusEquals(nextStatus, statusRef.current)) {
+          statusRef.current = nextStatus;
+          onKeybindStatusChange(nextStatus);
+        }
+      }
+    }, 200);
+
+    return () => clearInterval(interval);
+  }, []);
+
   useKeyboard(async (key) => {
     const {
+      keybindMode,
+      onToggleKeybindMode,
+      onKeybindStatusChange,
       view,
       setView,
       searchQuery,
@@ -65,119 +199,241 @@ export function useKeyboardNavigation(config: KeyboardNavigationConfig) {
       isBlocked,
     } = configRef.current;
 
-    // Skip all navigation when blocked (e.g., modal is open)
     if (isBlocked) return;
-
-    // selectedIndex is read via callbacks above; keep for completeness
     void selectedIndex;
 
-    if (view === "search") {
-      if (key.name === "return") {
-        setView("list");
-      } else if (key.name === "backspace") {
-        setSearchQuery(searchQuery.slice(0, -1));
-      } else if (key.sequence && key.sequence.length === 1) {
-        setSearchQuery(searchQuery + key.sequence);
-      } else if (key.name === "escape") {
-        setView("list");
-      }
-      return;
-    }
+    const keybinds = getKeybindSet(keybindMode);
+    const keybindIndex = buildKeybindIndex(keybinds);
+    const now = Date.now();
+    const state = stateRef.current;
 
-    if (view === "details") {
-      if (key.name === "q") {
-        process.exit(0);
+    const updateStatus = () => {
+      if (!onKeybindStatusChange) return;
+      const nextStatus = buildStatus(state);
+      if (!statusEquals(nextStatus, statusRef.current)) {
+        statusRef.current = nextStatus;
+        onKeybindStatusChange(nextStatus);
       }
-      if (key.name === "i" || key.name === "escape") {
-        setView("list");
+    };
+
+    const clearState = () => {
+      state.buffer = [];
+      state.countBuffer = "";
+      state.leaderActive = false;
+    };
+
+    const handleAction = async (action: ActionId, count: number) => {
+      if (action === "toggleKeybindMode") {
+        onToggleKeybindMode();
         return;
       }
-      if (key.name === "return" && detailsExtension && detailsExtension.status === "available") {
-        await onInstall(detailsExtension);
+
+      if (action === "openConfig") {
+        onOpenConfig();
+        return;
       }
-      return;
-    }
 
-    if (key.name === "a" || key.name === "j" || key.name === "left") {
-      const currentCatIndex = CATEGORIES.indexOf(selectedCategory);
-      const prevCatIndex = (currentCatIndex - 1 + CATEGORIES.length) % CATEGORIES.length;
-      const prevCat = CATEGORIES[prevCatIndex] ?? "All";
-      setSelectedCategory(prevCat);
-      setSelectedIndex(() => 0);
-      return;
-    }
-    if (key.name === "d" || key.name === "k" || key.name === "right") {
-      const currentCatIndex = CATEGORIES.indexOf(selectedCategory);
-      const nextCatIndex = (currentCatIndex + 1) % CATEGORIES.length;
-      const nextCat = CATEGORIES[nextCatIndex] ?? "All";
-      setSelectedCategory(nextCat);
-      setSelectedIndex(() => 0);
-      return;
-    }
-
-    switch (key.name) {
-      case "q":
+      if (action === "quit") {
         process.exit(0);
-      case "s":
-      case "l":
-      case "down":
-        setSelectedIndex((prev) => Math.min(prev + 1, filteredExtensions.length - 1));
-        break;
-      case "w":
-      case "o":
-      case "up":
-        setSelectedIndex((prev) => Math.max(prev - 1, 0));
-        break;
-      case "tab": {
+        return;
+      }
+
+      if (view === "search") {
+        if (action === "openDetails" || action === "closeDetails") {
+          setView("list");
+        }
+        return;
+      }
+
+      if (action === "openDetails") {
+        if (view === "list") {
+          setDetailsExtension(currentExtension ?? null);
+          setView("details");
+        }
+        return;
+      }
+
+      if (action === "closeDetails") {
+        if (view === "details") {
+          setView("list");
+        }
+        return;
+      }
+
+      if (action === "install") {
+        const target = view === "details" ? detailsExtension : currentExtension;
+        if (target && target.status === "available") {
+          await onInstall(target);
+        }
+        return;
+      }
+
+      if (action === "uninstall") {
+        if (currentExtension && currentExtension.status === "installed") {
+          await onUninstall(currentExtension);
+        }
+        return;
+      }
+
+      if (action === "refresh") {
+        await reloadExtensions();
+        return;
+      }
+
+      if (action === "openSearch") {
+        setView("search");
+        return;
+      }
+
+      if (action === "categoryPrev") {
+        const currentCatIndex = CATEGORIES.indexOf(selectedCategory);
+        const prevCatIndex = (currentCatIndex - 1 + CATEGORIES.length) % CATEGORIES.length;
+        const prevCat = CATEGORIES[prevCatIndex] ?? "All";
+        setSelectedCategory(prevCat);
+        setSelectedIndex(() => 0);
+        return;
+      }
+
+      if (action === "categoryNext") {
         const currentCatIndex = CATEGORIES.indexOf(selectedCategory);
         const nextCatIndex = (currentCatIndex + 1) % CATEGORIES.length;
         const nextCat = CATEGORIES[nextCatIndex] ?? "All";
         setSelectedCategory(nextCat);
         setSelectedIndex(() => 0);
-        break;
+        return;
       }
-      case "i":
-        if (view === "list") {
-          setDetailsExtension(currentExtension ?? null);
-          setView("details");
-        } else {
-          setView("list");
-        }
-        break;
-      case "return":
-        debug("Enter pressed", {
-          hasCurrentExtension: !!currentExtension,
-          extensionName: currentExtension?.name,
-          extensionStatus: currentExtension?.status,
-          installMethod: currentExtension?.install_method,
-          installCommand: currentExtension?.install_command,
-        });
-        if (currentExtension && currentExtension.status === "available") {
-          debug("Calling onInstall...");
-          await onInstall(currentExtension);
-          debug("onInstall completed");
-        } else {
-          debug("Skipped install - condition not met");
-        }
-        break;
-      case "u":
-        if (currentExtension && currentExtension.status === "installed") {
-          await onUninstall(currentExtension);
-        }
-        break;
-      case "r":
-        await reloadExtensions();
-        break;
-      case "/":
-        setView("search");
-        break;
-      case "e":
-        if (key.ctrl) {
-           onOpenConfig();
-        }
-        break;
-      default:
-        break;
+
+      if (action === "moveUp") {
+        setSelectedIndex((prev) => Math.max(prev - count, 0));
+        return;
+      }
+
+      if (action === "moveDown") {
+        setSelectedIndex((prev) => Math.min(prev + count, filteredExtensions.length - 1));
+        return;
+      }
+
+      if (action === "moveTop") {
+        setSelectedIndex(() => 0);
+        return;
+      }
+
+      if (action === "moveBottom") {
+        setSelectedIndex(() => Math.max(filteredExtensions.length - 1, 0));
+        return;
+      }
+    };
+
+    if (now - state.lastKeyAt > SEQUENCE_TIMEOUT_MS) {
+      state.buffer = [];
+    }
+
+    if (state.leaderActive && now - state.leaderAt > LEADER_TIMEOUT_MS) {
+      state.leaderActive = false;
+    }
+
+    if (isLeaderKey(key, keybinds)) {
+      state.leaderActive = true;
+      state.leaderAt = now;
+      state.buffer = [];
+      state.lastKeyAt = now;
+      updateStatus();
+      return;
+    }
+
+    if (view === "search") {
+      if (key.name === "escape") {
+        setView("list");
+        clearState();
+        state.lastKeyAt = now;
+        updateStatus();
+        return;
+      }
+      if (key.name === "return" || key.name === "enter") {
+        setView("list");
+        clearState();
+        state.lastKeyAt = now;
+        updateStatus();
+        return;
+      }
+      if (key.name === "backspace") {
+        setSearchQuery(searchQuery.slice(0, -1));
+        state.lastKeyAt = now;
+        return;
+      }
+      if (!hasModifier(key) && key.sequence && key.sequence.length === 1) {
+        setSearchQuery(searchQuery + key.sequence);
+        state.lastKeyAt = now;
+        return;
+      }
+    }
+
+    if (isDigitKey(key) && !state.leaderActive && state.buffer.length === 0) {
+      state.countBuffer += key.sequence ?? key.name ?? "";
+      state.lastKeyAt = now;
+      updateStatus();
+      return;
+    }
+
+    const leaderToken = state.leaderActive ? "<leader>" : null;
+
+    const chord = formatEventChord(key);
+    if (chord && hasModifier(key)) {
+      const actions = keybindIndex.chordActions.get(chord) ?? [];
+      const resolved = resolveActionForView(view, actions as ActionId[]);
+      const count = state.countBuffer ? Math.max(parseInt(state.countBuffer, 10), 1) : 1;
+      clearState();
+      state.lastKeyAt = now;
+      updateStatus();
+      if (resolved) {
+        await handleAction(resolved, count);
+      }
+      return;
+    }
+
+    const token = extractSequenceToken(key);
+    if (!token) {
+      clearState();
+      state.lastKeyAt = now;
+      updateStatus();
+      return;
+    }
+
+    const nextBuffer = [...state.buffer];
+    if (leaderToken && nextBuffer.length === 0) {
+      nextBuffer.push(leaderToken);
+    }
+    nextBuffer.push(token);
+
+    const possibleSequences = keybindIndex.sequences.filter((sequence) => {
+      return sequence.tokens.slice(0, nextBuffer.length).every((value, index) => value === nextBuffer[index]);
+    });
+
+    if (possibleSequences.length === 0) {
+      clearState();
+      state.lastKeyAt = now;
+      updateStatus();
+      return;
+    }
+
+    const completed = possibleSequences.filter((sequence) => sequence.tokens.length === nextBuffer.length);
+    if (completed.length === 0) {
+      state.buffer = nextBuffer;
+      state.lastKeyAt = now;
+      updateStatus();
+      return;
+    }
+
+    const actions = completed.map((sequence) => sequence.action) as ActionId[];
+    const resolved = resolveActionForView(view, actions);
+    const count = state.countBuffer ? Math.max(parseInt(state.countBuffer, 10), 1) : 1;
+
+    clearState();
+    state.lastKeyAt = now;
+    updateStatus();
+
+    if (resolved) {
+      await handleAction(resolved, count);
     }
   });
 }

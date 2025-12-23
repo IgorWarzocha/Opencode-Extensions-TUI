@@ -1,0 +1,12 @@
+{
+  "id": "numman-ali_opencode-openai-codex-auth",
+  "name": "OpenAI Codex OAuth Plugin",
+  "description": "OAuth authentication plugin for personal coding assistance with ChatGPT Plus/Pro subscriptions - uses OpenAI's official authentication method with 22 pre-configured model variants",
+  "author": "numman-ali",
+  "author_url": "https://github.com/numman-ali",
+  "repository_url": "https://github.com/numman-ali/opencode-openai-codex-auth",
+  "category": "Plugins",
+  "install_command": "npm install opencode-openai-codex-auth",
+  "install_method": "npm",
+  "readme": ""
+}

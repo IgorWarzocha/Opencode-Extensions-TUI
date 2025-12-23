@@ -1,0 +1,12 @@
+{
+  "id": "opencode-plugin-cloudflare",
+  "name": "Cloudflare Integration",
+  "description": "Cloudflare integration plugin for OpenCode",
+  "author": "ericc-ch",
+  "author_url": "https://github.com/ericc-ch",
+  "repository_url": "https://github.com/ericc-ch/opencode-plugins",
+  "category": "Plugins",
+  "install_command": "npm install opencode-plugin-cloudflare",
+  "install_method": "npm",
+  "readme": ""
+}

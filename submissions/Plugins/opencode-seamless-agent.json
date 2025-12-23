@@ -1,0 +1,12 @@
+{
+  "id": "opencode-seamless-agent",
+  "name": "Seamless Agent Integration",
+  "description": "Seamless agent integration plugin for OpenCode workflow automation",
+  "author": "sst",
+  "author_url": "https://github.com/sst",
+  "repository_url": "https://github.com/sst/opencode",
+  "category": "Plugins",
+  "install_command": "npm install opencode-seamless-agent",
+  "install_method": "npm",
+  "readme": ""
+}

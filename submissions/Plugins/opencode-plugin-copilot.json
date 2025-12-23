@@ -1,0 +1,12 @@
+{
+  "id": "opencode-plugin-copilot",
+  "name": "Copilot Integration",
+  "description": "Copilot integration plugin for OpenCode",
+  "author": "ericc-ch",
+  "author_url": "https://github.com/ericc-ch",
+  "repository_url": "https://github.com/ericc-ch/opencode-plugins",
+  "category": "Plugins",
+  "install_command": "npm install opencode-plugin-copilot",
+  "install_method": "npm",
+  "readme": ""
+}

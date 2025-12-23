@@ -1,0 +1,12 @@
+{
+  "id": "paflopes_opencode-qwen-auth",
+  "name": "Qwen Authentication Plugin",
+  "description": "Qwen (Alibaba Cloud) authentication plugin for OpenCode",
+  "author": "paflopes",
+  "author_url": "https://github.com/paflopes",
+  "repository_url": "https://github.com/paflopes/opencode-qwen-auth",
+  "category": "Plugins",
+  "install_command": "npm install @paflopes/opencode-qwen-auth",
+  "install_method": "npm",
+  "readme": ""
+}

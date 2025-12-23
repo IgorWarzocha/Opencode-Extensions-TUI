@@ -21,6 +21,8 @@ import { useExtensionsState } from "./hooks/useExtensionsState";
 import { useExtensionData } from "./hooks/useExtensionData";
 import { calculateLayout } from "./utils/layout";
 import { useInstallFlow } from "./hooks/useInstallFlow";
+import type { KeybindMode, KeybindStatus } from "./keybinds/keybind-types.js";
+import { getNextKeybindMode } from "./keybinds/keybinds.js";
 
 import { metadataService } from "./services/MetadataService.js";
 
@@ -50,6 +52,12 @@ export default function App() {
   const { height: terminalHeight, dimensions } = useTerminalSize();
   const [detailsExtension, setDetailsExtension] = useState<Extension | null>(null);
   const [showConfigModal, setShowConfigModal] = useState(false);
+  const [keybindMode, setKeybindMode] = useState<KeybindMode>("oc");
+  const [keybindStatus, setKeybindStatus] = useState<KeybindStatus>({
+    leaderActive: false,
+    sequence: [],
+    count: null,
+  });
 
   const { availableWidth, maxLine } = dimensions;
   const { mode, windowSize } = calculateLayout({
@@ -88,6 +96,11 @@ export default function App() {
   return (
     <>
       <AppKeyboardHandler
+        keybindMode={keybindMode}
+        onToggleKeybindMode={() => {
+          setKeybindMode((prev) => getNextKeybindMode(prev));
+        }}
+        onKeybindStatusChange={setKeybindStatus}
         view={view}
         setView={setView}
         searchQuery={searchQuery}
@@ -138,7 +151,14 @@ export default function App() {
             />
           )
         }
-        footer={<StatusBar view={showScriptModal || showNpmModal ? 'modal' : view} />}
+        footer={
+          <StatusBar
+            view={showScriptModal || showNpmModal ? "modal" : view}
+            keybindMode={keybindMode}
+            keybindStatus={keybindStatus}
+            maxLine={maxLine}
+          />
+        }
       />
       {/* Floating modal overlay */}
       <ScriptModal

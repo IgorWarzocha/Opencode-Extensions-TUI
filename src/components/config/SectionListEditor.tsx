@@ -1,17 +1,15 @@
 import { t, dim, bold, cyan } from "@opentui/core";
 import { useMemo, useState, useEffect } from "react";
 import { ocTheme } from "../../theme";
-import {
-  parseObjectSection,
-  toggleBlock,
-  removeItem,
-  addItem,
-  type ConfigItem,
-} from "../../utils/config-parser";
+import { addItem } from "../../utils/config-parser/add-item.js";
+import { toggleBlock } from "../../utils/config-parser/comment-toggle.js";
+import type { ConfigItem } from "../../utils/config-parser/types.js";
+import { parseObjectSection } from "../../utils/config-parser/object-section.js";
+import { removeItem } from "../../utils/config-parser/remove-item.js";
 import { ScopedJsonEditor } from "./ScopedJsonEditor";
 import { parseJSONC } from "../../utils/json";
 import { useScrollableList } from "../../hooks/useScrollableList";
-import { SchemaHelper } from "../../utils/SchemaHelper";
+import { OpencodeSchemaHelper } from "../../utils/OpencodeSchemaHelper";
 
 interface SectionListEditorProps {
   rawContent: string;
@@ -30,6 +28,10 @@ export function SectionListEditor({
   editingItem,
   onEditItem,
 }: SectionListEditorProps) {
+  const isRecord = (value: unknown): value is Record<string, unknown> => {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+  };
+
   const [showAddMenu, setShowAddMenu] = useState(false);
 
   // Simple, single-level parsing. No recursion/drill-down.
@@ -44,10 +46,10 @@ export function SectionListEditor({
     if (showAddMenu) {
       setLoadingSuggestions(true);
       const existingKeys = items.map((i) => i.key);
-      // SchemaHelper.getSuggestedKeys is now synchronous but relies on MetadataService which might be async-ish
+      // OpencodeSchemaHelper.getSuggestedKeys is now synchronous but relies on MetadataService which might be async-ish
       // Actually, let's keep getSuggestedKeys sync for simplicity, but maybe trigger a refresh?
       // Since MetadataService fetches on init, it might be instant.
-      const keys = SchemaHelper.getSuggestedKeys(sectionKey, existingKeys);
+      const keys = OpencodeSchemaHelper.getSuggestedKeys(sectionKey, existingKeys);
       setSuggestions(keys);
       setLoadingSuggestions(false);
     }
@@ -88,7 +90,7 @@ export function SectionListEditor({
   // Add menu navigation
   const handleAddSelect = (key: string) => {
     // 1. Get template
-    const template = SchemaHelper.getTemplate(sectionKey, key);
+    const template = OpencodeSchemaHelper.getTemplate(sectionKey, key);
     // 2. Add item
     const newRaw = addItem(rawContent, sectionKey, key, template);
     onChange(newRaw);
@@ -164,8 +166,6 @@ export function SectionListEditor({
       onChange(fileLines.join("\n"));
       onEditItem(null);
     } catch (e) {
-      // If parsing failed, show error
-      console.error("Invalid JSON in editor:", e);
       return;
     }
   };
@@ -178,14 +178,17 @@ export function SectionListEditor({
       // BUT ScopedJsonEditor expects object if we use the old logic.
       // Wait, we want to inject suggestions.
 
-      let currentObj: any = {};
+      let currentObj: unknown = {};
       try {
         const wrapped = `{ ${editingItem.raw} }`;
-        currentObj = parseJSONC(wrapped)[editingItem.key];
+        const parsed = parseJSONC(wrapped);
+        if (isRecord(parsed) && editingItem.key in parsed) {
+          currentObj = parsed[editingItem.key];
+        }
       } catch (e) {}
 
       // Use the new powerful generation
-      initialContent = SchemaHelper.generateWithSuggestions(
+      initialContent = OpencodeSchemaHelper.generateWithSuggestions(
         currentObj,
         sectionKey,
         editingItem.key,
