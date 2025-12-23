@@ -1,3 +1,8 @@
+/**
+ * Modal dialog that previews install scripts and guides users through execution.
+ * It supports scrolling, status feedback, and mouse-friendly actions for install flow.
+ */
+
 import { t, dim, bold, green, red, yellow, cyan } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
 import { useEffect, useState, useRef } from "react";
@@ -5,6 +10,8 @@ import type { Extension } from "../types/extension";
 import { ocTheme } from "../theme";
 import { useTerminalSize } from "../hooks/useTerminalSize";
 import { extractScriptUrl, fetchScriptContent, isCurlPipeInstall } from "../utils/scriptParser";
+import { ModalBackdrop } from "./ui/modal-backdrop";
+import { ModalActionButton } from "./ui/modal-action-button";
 
 interface ScriptModalProps {
   extension: Extension | null;
@@ -254,6 +261,20 @@ export function ScriptModal({ extension, isVisible, onClose, onConfirm }: Script
               flexDirection="column"
               width={contentWidth}
               height={visibleLineCount}
+              onMouseScroll={(event) => {
+                const scroll = event.scroll;
+                if (!scroll) return;
+                const delta = Math.max(1, scroll.delta);
+                setScrollOffset((prev) => {
+                  if (scroll.direction === "up") {
+                    return Math.max(0, prev - delta);
+                  }
+                  if (scroll.direction === "down") {
+                    return Math.min(maxScroll, prev + delta);
+                  }
+                  return prev;
+                });
+              }}
             >
               {visibleLines.map((line, idx) => (
                 <text key={clampedOffset + idx} content={t`${fixedWidthLine(line, contentWidth - 2)}`} />
@@ -266,49 +287,85 @@ export function ScriptModal({ extension, isVisible, onClose, onConfirm }: Script
   };
 
   const renderFooter = () => {
-    if (loadState.status === 'installing') {
-      return <text content={t`${dim('Please wait...')}`} />;
+    if (loadState.status === "installing") {
+      return <text content={t`${dim("Please wait...")}`} />;
     }
-    if (loadState.status === 'install-success' || loadState.status === 'install-error') {
-      return <text content={t`${green('[Enter]')} Close  ${red('[Esc]')} Close`} />;
+
+    if (loadState.status === "install-success" || loadState.status === "install-error") {
+      return (
+        <box>
+          <ModalActionButton
+            content={t`${green("Close")}`}
+            onPress={onClose}
+          />
+        </box>
+      );
     }
-    return <text content={t`${green('[Enter]')} Install  ${red('[Esc]')} Cancel`} />;
+
+    const canInstall =
+      loadState.status === "success" || loadState.status === "no-url";
+    const showCancel = true;
+
+    return (
+      <box flexDirection="row" columnGap={1}>
+        <ModalActionButton
+          content={t`${green("Install")}`}
+          borderColor={canInstall ? ocTheme.accent : ocTheme.border}
+          isDisabled={!canInstall}
+          onPress={handleInstall}
+        />
+        {showCancel ? (
+          <ModalActionButton
+            content={t`${red("Cancel")}`}
+            onPress={onClose}
+          />
+        ) : null}
+      </box>
+    );
   };
 
   const title = fixedWidthLine(`Install Script: ${extension.name}`, contentWidth);
+  const handleBackdropClose = () => {
+    if (loadState.status === "installing") return;
+    onClose();
+  };
 
   return (
-    <box
-      style={{
-        position: "absolute",
-        left: "50%",
-        top: "50%",
-        marginLeft: -Math.floor(modalWidth / 2),
-        marginTop: -Math.floor(modalHeight / 2),
-        width: modalWidth,
-        height: modalHeight,
-        zIndex: 100,
-      }}
-      backgroundColor={ocTheme.background}
-      borderStyle="double"
-      borderColor={ocTheme.accent}
-      flexDirection="column"
-      padding={1}
-    >
-      {/* Header */}
-      <box flexShrink={0}>
-        <text content={t`${bold(title)}`} />
-      </box>
+    <>
+      <ModalBackdrop onClose={handleBackdropClose} zIndex={90} />
+      <box
+        style={{
+          position: "absolute",
+          left: "50%",
+          top: "50%",
+          marginLeft: -Math.floor(modalWidth / 2),
+          marginTop: -Math.floor(modalHeight / 2),
+          width: modalWidth,
+          height: modalHeight,
+          zIndex: 100,
+        }}
+        backgroundColor={ocTheme.background}
+        borderStyle="double"
+        borderColor={ocTheme.accent}
+        flexDirection="column"
+        padding={1}
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        {/* Header */}
+        <box flexShrink={0}>
+          <text content={t`${bold(title)}`} />
+        </box>
 
-      {/* Content */}
-      <box flexGrow={1} flexDirection="column" marginTop={1}>
-        {renderContent()}
-      </box>
+        {/* Content */}
+        <box flexGrow={1} flexDirection="column" marginTop={1}>
+          {renderContent()}
+        </box>
 
-      {/* Footer */}
-      <box flexShrink={0} marginTop={1}>
-        {renderFooter()}
+        {/* Footer */}
+        <box flexShrink={0} marginTop={1}>
+          {renderFooter()}
+        </box>
       </box>
-    </box>
+    </>
   );
 }

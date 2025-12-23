@@ -1,3 +1,8 @@
+/**
+ * Large configuration editor modal for managing opencode settings.
+ * It supports scoped configs, section navigation, and mouse-friendly scope switching.
+ */
+
 import { t, dim, bold, cyan, green, red } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
 import { useEffect, useState } from "react";
@@ -22,6 +27,8 @@ import { SkillEditor } from "./config/SkillEditor";
 import { parseJSONC } from "../utils/json";
 import { updateTopLevelKeys } from "../utils/config-parser/top-level-updates.js";
 import type { ConfigItem } from "../utils/config-parser/types.js";
+import { ModalBackdrop } from "./ui/modal-backdrop";
+import { ModalActionButton } from "./ui/modal-action-button";
 
 interface ConfigEditorModalProps {
   isVisible: boolean;
@@ -291,57 +298,79 @@ export function ConfigEditorModal({
         return <text content="Select a section" />;
     }
   };
+  const handleBackdropClose = () => {
+    if (subEditorBusy) return;
+    if (editingConfigItem) {
+      setEditingConfigItem(null);
+      return;
+    }
+    onClose();
+  };
 
   return (
-    <box
-      style={{
-        position: "absolute",
-        left: "50%",
-        top: "50%",
-        marginLeft: -Math.floor(modalWidth / 2),
-        marginTop: -Math.floor(modalHeight / 2),
-        width: modalWidth,
-        height: modalHeight,
-        zIndex: 100,
-      }}
-      backgroundColor={ocTheme.background}
-      borderStyle="double"
-      borderColor={ocTheme.accent}
-      flexDirection="column"
-      padding={0}
-    >
-      {/* Header */}
+    <>
+      <ModalBackdrop onClose={handleBackdropClose} zIndex={90} />
       <box
-        height={3}
-        borderStyle="single"
-        borderColor={ocTheme.border}
-        flexDirection="row"
-        justifyContent="space-between"
-        paddingLeft={1}
-        paddingRight={1}
-        alignItems="center"
+        style={{
+          position: "absolute",
+          left: "50%",
+          top: "50%",
+          marginLeft: -Math.floor(modalWidth / 2),
+          marginTop: -Math.floor(modalHeight / 2),
+          width: modalWidth,
+          height: modalHeight,
+          zIndex: 100,
+        }}
+        backgroundColor={ocTheme.background}
+        borderStyle="double"
+        borderColor={ocTheme.accent}
+        flexDirection="column"
+        padding={0}
+        onMouseDown={(event) => event.stopPropagation()}
       >
-        <box flexDirection="row">
-          <text content={t`${bold("Config Editor")}`} />
-          <box marginLeft={2}>
-            <text
-              content={t`${scope === "local" ? bold(cyan("[Local]")) : dim(" Local ")}  ${scope === "global" ? bold(cyan("[Global]")) : dim(" Global ")}`}
-            />
+        {/* Header */}
+        <box
+          height={3}
+          borderStyle="single"
+          borderColor={ocTheme.border}
+          flexDirection="row"
+          justifyContent="space-between"
+          paddingLeft={1}
+          paddingRight={1}
+          alignItems="center"
+        >
+          <box flexDirection="row">
+            <text content={t`${bold("Config Editor")}`} />
+            <box marginLeft={2} flexDirection="row" columnGap={1}>
+              <ModalActionButton
+                content={scope === "local" ? bold(cyan("Local")) : dim("Local")}
+                borderColor={scope === "local" ? ocTheme.borderActive : ocTheme.border}
+                backgroundColor={scope === "local" ? ocTheme.element : ocTheme.panel}
+                showBorder={false}
+                onPress={() => setScope("local")}
+              />
+              <ModalActionButton
+                content={scope === "global" ? bold(cyan("Global")) : dim("Global")}
+                borderColor={scope === "global" ? ocTheme.borderActive : ocTheme.border}
+                backgroundColor={scope === "global" ? ocTheme.element : ocTheme.panel}
+                showBorder={false}
+                onPress={() => setScope("global")}
+              />
+            </box>
+          </box>
+          <box>
+            {message && (
+              <text
+                content={t`${message.type === "success" ? green(message.text) : red(message.text)}`}
+              />
+            )}
+            {!message && (
+              <text
+                content={t`${dim(configService.getConfigPath(scope).slice(-40))}`}
+              />
+            )}
           </box>
         </box>
-        <box>
-          {message && (
-            <text
-              content={t`${message.type === "success" ? green(message.text) : red(message.text)}`}
-            />
-          )}
-          {!message && (
-            <text
-              content={t`${dim(configService.getConfigPath(scope).slice(-40))}`}
-            />
-          )}
-        </box>
-      </box>
 
       {/* Main Body */}
       <box flexGrow={1} flexDirection="row">
@@ -358,18 +387,19 @@ export function ConfigEditorModal({
         </box>
       </box>
 
-      {/* Footer */}
-      <box
-        height={1}
-        paddingLeft={1}
-        marginTop={0}
-        backgroundColor={ocTheme.menu}
-      >
-        <text
-          content={t`${dim("Ctrl+Left/Right: Scope • Ctrl+Up/Down: Section • Ctrl+S: Save • Esc: Close/Back")}`}
-        />
+        {/* Footer */}
+        <box
+          height={1}
+          paddingLeft={1}
+          marginTop={0}
+          backgroundColor={ocTheme.menu}
+        >
+          <text
+            content={t`${dim("Ctrl+Left/Right: Scope • Ctrl+Up/Down: Section • Ctrl+S: Save • Esc: Close/Back")}`}
+          />
+        </box>
       </box>
-    </box>
+    </>
   );
 }
 

@@ -2,6 +2,7 @@
  * Extension info display components for the detail view.
  * Renders header, description, installation info, and skills list for bundles.
  */
+import type { MouseEvent } from "@opentui/core";
 import { t, bold, dim, cyan } from "@opentui/core";
 import { ocTheme } from "../../theme";
 import type { Extension } from "../../types/extension";
@@ -43,10 +44,12 @@ export function ExtensionDescription({ extension }: ExtensionDescriptionProps) {
 
 interface ExtensionInstallationProps {
   extension: Extension;
+  onMouseDown?: (event: MouseEvent) => void;
 }
 
 export function ExtensionInstallation({
   extension,
+  onMouseDown,
 }: ExtensionInstallationProps) {
   const installText = extension.install_command || "No install command";
 
@@ -58,6 +61,7 @@ export function ExtensionInstallation({
       borderColor={ocTheme.border}
       padding={1}
       title="Installation"
+      onMouseDown={onMouseDown}
     >
       <text content={t`${installText}`} />
     </box>

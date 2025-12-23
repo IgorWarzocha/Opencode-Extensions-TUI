@@ -3,7 +3,7 @@
  * Uses useReadmeData to lazily fetch README details and present loading/error states.
  */
 import { useMemo, useRef } from "react";
-import { t, yellow, type ScrollBoxRenderable } from "@opentui/core";
+import { MouseButton, t, yellow, type MouseEvent, type ScrollBoxRenderable } from "@opentui/core";
 import { createSyntaxStyle } from "../theme/syntax";
 import type { Extension } from "../types/extension";
 import { useReadmeData } from "../hooks/useReadmeData";
@@ -17,16 +17,19 @@ interface ExtensionDetailsProps {
   extension: Extension;
   onClose: () => void;
   isActive?: boolean;
+  onOpenInstall?: (extension: Extension) => void | Promise<void>;
 }
 
 export function ExtensionDetails({
   extension,
   isActive = true,
+  onOpenInstall,
 }: ExtensionDetailsProps) {
   const isSkillsBundle = extension.install_method === "skills";
   const { readmeData, isLoading, error, hasContent } = useReadmeData(extension);
   const syntaxStyle = createSyntaxStyle();
   const scrollboxRef = useRef<ScrollBoxRenderable | null>(null);
+  const lastInstallClickAt = useRef<number | null>(null);
 
   // For skills bundles, generate a simple readme from skills data
   const readmeContent = useMemo(() => {
@@ -47,7 +50,20 @@ export function ExtensionDetails({
         <ExtensionHeader extension={extension} />
         <ExtensionDescription extension={extension} />
         <box marginTop={1}>
-          <ExtensionInstallation extension={extension} />
+          <ExtensionInstallation
+            extension={extension}
+            onMouseDown={(event: MouseEvent) => {
+              if (!isActive) return;
+              if (event.button !== MouseButton.LEFT) return;
+              const now = Date.now();
+              const lastClick = lastInstallClickAt.current;
+              lastInstallClickAt.current = now;
+              if (lastClick !== null && now - lastClick <= 350) {
+                lastInstallClickAt.current = null;
+                if (onOpenInstall) void onOpenInstall(extension);
+              }
+            }}
+          />
         </box>
 
         {!isSkillsBundle && isLoading && (

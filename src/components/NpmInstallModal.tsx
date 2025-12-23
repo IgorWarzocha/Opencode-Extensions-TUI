@@ -1,9 +1,16 @@
+/**
+ * Modal dialog that handles NPM installation scope selection and confirmation.
+ * Provides keyboard and mouse controls for choosing scope and submitting install.
+ */
+
 import { t, bold, dim, green, red, cyan } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
 import { useEffect, useMemo, useState } from "react";
 import type { Extension } from "../types/extension";
 import { ocTheme } from "../theme";
 import { useTerminalSize } from "../hooks/useTerminalSize";
+import { ModalBackdrop } from "./ui/modal-backdrop";
+import { ModalActionButton } from "./ui/modal-action-button";
 
 interface NpmInstallModalProps {
   extension: Extension | null;
@@ -99,18 +106,31 @@ export function NpmInstallModal({ extension, isVisible, onClose, onConfirm }: Np
   if (!isVisible || !extension) return null;
 
   const scopeLine = () => {
-    const localLabel = scope === "local" ? bold("local") : dim("local");
-    const globalLabel = scope === "global" ? bold("global") : dim("global");
+    const localLabel = scope === "local" ? bold(cyan("local")) : dim("local");
+    const globalLabel = scope === "global" ? bold(cyan("global")) : dim("global");
 
-    if (focus === "scope") {
-      return (
-        <text
-          content={t`${cyan("[")} ${localLabel} ${cyan("|")} ${globalLabel} ${cyan("]")}`}
+    return (
+      <box flexDirection="row" columnGap={1}>
+        <ModalActionButton
+          content={localLabel}
+          borderColor={scope === "local" ? ocTheme.accent : ocTheme.border}
+          backgroundColor={scope === "local" ? ocTheme.element : ocTheme.panel}
+          onPress={() => {
+            setScope("local");
+            setFocus("scope");
+          }}
         />
-      );
-    }
-
-    return <text content={t`${localLabel} | ${globalLabel}`} />;
+        <ModalActionButton
+          content={globalLabel}
+          borderColor={scope === "global" ? ocTheme.accent : ocTheme.border}
+          backgroundColor={scope === "global" ? ocTheme.element : ocTheme.panel}
+          onPress={() => {
+            setScope("global");
+            setFocus("scope");
+          }}
+        />
+      </box>
+    );
   };
 
   const pathLine = () => {
@@ -125,13 +145,32 @@ export function NpmInstallModal({ extension, isVisible, onClose, onConfirm }: Np
 
   const footerLine = () => {
     if (status === "success" || status === "error") {
-      return <text content={t`${green("[Enter]")} Close`} />;
+      return (
+        <box>
+          <ModalActionButton
+            content={t`${green("Close")}`}
+            onPress={onClose}
+          />
+        </box>
+      );
     }
-    
-    if (focus === "confirm") {
-      return <text content={t`${green("[Enter]")} Install  ${red("[Esc]")} Cancel`} />;
-    }
-    return <text content={t`${dim("Tab to move • Enter to install • Esc to cancel")}`} />;
+
+    return (
+      <box flexDirection="row" columnGap={1}>
+        <ModalActionButton
+          content={t`${green("Install")}`}
+          borderColor={focus === "confirm" ? ocTheme.accent : ocTheme.border}
+          onPress={() => {
+            setFocus("confirm");
+            handleConfirm();
+          }}
+        />
+        <ModalActionButton
+          content={t`${red("Cancel")}`}
+          onPress={onClose}
+        />
+      </box>
+    );
   };
 
   const renderContent = () => {
@@ -174,32 +213,36 @@ export function NpmInstallModal({ extension, isVisible, onClose, onConfirm }: Np
   };
 
   return (
-    <box
-      style={{
-        position: "absolute",
-        left: "50%",
-        top: "50%",
-        marginLeft: -Math.floor(modalWidth / 2),
-        marginTop: -Math.floor(modalHeight / 2),
-        width: modalWidth,
-        height: modalHeight,
-        zIndex: 120,
-      }}
-      backgroundColor={ocTheme.background}
-      borderStyle="double"
-      borderColor={status === "error" ? ocTheme.danger : (status === "success" ? ocTheme.success : ocTheme.accent)}
-      flexDirection="column"
-      padding={1}
-    >
-      <box flexShrink={0}>
-        <text content={t`${bold(`Install ${extension.name}`)}`} />
-      </box>
+    <>
+      <ModalBackdrop onClose={onClose} zIndex={110} />
+      <box
+        style={{
+          position: "absolute",
+          left: "50%",
+          top: "50%",
+          marginLeft: -Math.floor(modalWidth / 2),
+          marginTop: -Math.floor(modalHeight / 2),
+          width: modalWidth,
+          height: modalHeight,
+          zIndex: 120,
+        }}
+        backgroundColor={ocTheme.background}
+        borderStyle="double"
+        borderColor={status === "error" ? ocTheme.danger : (status === "success" ? ocTheme.success : ocTheme.accent)}
+        flexDirection="column"
+        padding={1}
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <box flexShrink={0}>
+          <text content={t`${bold(`Install ${extension.name}`)}`} />
+        </box>
 
-      {renderContent()}
+        {renderContent()}
 
-      <box flexShrink={0} marginTop={1}>
-        {footerLine()}
+        <box flexShrink={0} marginTop={1}>
+          {footerLine()}
+        </box>
       </box>
-    </box>
+    </>
   );
 }

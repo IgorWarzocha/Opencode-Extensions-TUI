@@ -3,17 +3,21 @@
  * Displays available extension categories and highlights the currently selected one.
  */
 
-import { t, bold, dim, cyan } from '@opentui/core';
-import { ocTheme } from '../theme';
-import { CATEGORIES } from '../constants/categories';
+import { MouseButton, t, bold, dim, cyan } from "@opentui/core";
+import { ocTheme } from "../theme";
+import { CATEGORIES, type Category } from "../constants/categories";
 
 interface CategorySidebarProps {
-  selectedCategory: string;
+  selectedCategory: Category;
+  onSelectCategory?: (category: Category) => void;
+  isInteractive?: boolean;
 }
 
-
-
-export function CategorySidebar({ selectedCategory }: CategorySidebarProps) {
+export function CategorySidebar({
+  selectedCategory,
+  onSelectCategory,
+  isInteractive = true,
+}: CategorySidebarProps) {
   return (
     <box
       flexDirection="row"
@@ -37,6 +41,11 @@ export function CategorySidebar({ selectedCategory }: CategorySidebarProps) {
             padding={0}
             paddingLeft={1}
             paddingRight={1}
+            onMouseDown={(event) => {
+              if (!isInteractive) return;
+              if (event.button !== MouseButton.LEFT) return;
+              if (onSelectCategory) onSelectCategory(label);
+            }}
           >
             <text content={content} />
           </box>
@@ -45,4 +54,3 @@ export function CategorySidebar({ selectedCategory }: CategorySidebarProps) {
     </box>
   );
 }
-

@@ -102,6 +102,9 @@ export default function App() {
     }
   }, [filteredExtensions.length, selectedIndex]);
 
+  const isInteractionBlocked =
+    showScriptModal || showNpmModal || showSkillModal || showConfigModal;
+
   return (
     <>
       <AppKeyboardHandler
@@ -129,12 +132,23 @@ export default function App() {
           setExtensions(next);
         }}
         onOpenConfig={() => setShowConfigModal(true)}
-        isBlocked={
-          showScriptModal || showNpmModal || showSkillModal || showConfigModal
-        }
+        isBlocked={isInteractionBlocked}
       />
       <AppLayout
-        sidebar={<CategorySidebar selectedCategory={selectedCategory} />}
+        sidebar={
+          <CategorySidebar
+            selectedCategory={selectedCategory}
+            isInteractive={!isInteractionBlocked}
+            onSelectCategory={(category) => {
+              setSelectedCategory(category);
+              setSelectedIndex(() => 0);
+              if (view !== "list") {
+                setDetailsExtension(null);
+                setView("list");
+              }
+            }}
+          />
+        }
         header={
           view !== "details" ? (
             <SearchHeader
@@ -144,6 +158,10 @@ export default function App() {
                 extensions.filter((e) => e.status === "installed").length
               }
               isSearching={view === "search"}
+              isInteractive={!isInteractionBlocked}
+              onFocusSearch={() => {
+                if (view !== "search") setView("search");
+              }}
             />
           ) : null
         }
@@ -151,7 +169,10 @@ export default function App() {
           view === "details" && detailsExtension ? (
             <ExtensionDetails
               extension={detailsExtension}
-              isActive={view === "details" && !showScriptModal && !showNpmModal}
+              isActive={view === "details" && !isInteractionBlocked}
+              onOpenInstall={(extension) => {
+                void handleInstall(extension);
+              }}
               onClose={() => setView("list")}
             />
           ) : (
@@ -161,6 +182,12 @@ export default function App() {
               windowSize={windowSize}
               mode={mode}
               maxLine={maxLine}
+              setSelectedIndex={setSelectedIndex}
+              onOpenDetails={(extension) => {
+                setDetailsExtension(extension);
+                setView("details");
+              }}
+              isInteractive={!isInteractionBlocked}
             />
           )
         }

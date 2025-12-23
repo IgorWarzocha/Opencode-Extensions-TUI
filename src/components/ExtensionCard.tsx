@@ -3,20 +3,28 @@
  * Adapts display format (wide/medium/narrow) based on available terminal width.
  */
 
-import { t, cyan, dim, bold } from '@opentui/core';
-import { ocTheme } from '../theme';
-import type { Extension } from '../types/extension';
-import { ellipsize, formatCount } from '../utils/text';
-import type { ViewMode } from '../utils/layout';
+import type { MouseEvent } from "@opentui/core";
+import { t, cyan, dim, bold } from "@opentui/core";
+import { ocTheme } from "../theme";
+import type { Extension } from "../types/extension";
+import { ellipsize, formatCount } from "../utils/text";
+import type { ViewMode } from "../utils/layout";
 
 interface ExtensionCardProps {
   extension: Extension;
   isSelected: boolean;
   mode: ViewMode;
   maxLine: number;
+  onMouseDown?: (event: MouseEvent) => void;
 }
 
-export function ExtensionCard({ extension, isSelected, mode, maxLine }: ExtensionCardProps) {
+export function ExtensionCard({
+  extension,
+  isSelected,
+  mode,
+  maxLine,
+  onMouseDown,
+}: ExtensionCardProps) {
   const borderColor = isSelected ? ocTheme.borderActive : ocTheme.border;
   const backgroundColor = isSelected ? ocTheme.element : ocTheme.panel;
 
@@ -73,6 +81,7 @@ export function ExtensionCard({ extension, isSelected, mode, maxLine }: Extensio
         rowGap={0}
         width="100%"
         height={height}
+        onMouseDown={onMouseDown}
       >
         <text content={t`${nameStyled}${dim(spacer1)}${description}${spacer2}${dim(infoTrimmed)}`} />
       </box>
@@ -105,6 +114,7 @@ export function ExtensionCard({ extension, isSelected, mode, maxLine }: Extensio
         rowGap={0}
         width="100%"
         height={height}
+        onMouseDown={onMouseDown}
       >
         <text content={t`${nameStyled}${spacer}${dim(infoTrimmed)}`} />
         <text content={t`${description}`} />
@@ -130,6 +140,7 @@ export function ExtensionCard({ extension, isSelected, mode, maxLine }: Extensio
       rowGap={0}
       width="100%"
       height={height}
+      onMouseDown={onMouseDown}
     >
       <text content={t`${nameStyled}`} />
       <text content={t`${dim(infoTrimmed)}`} />

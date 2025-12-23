@@ -1,15 +1,14 @@
 /**
- * Modal for installing skills from a bundle repository.
- * Shows available skills with selection, scope choice (local/global), and installation.
+ * Logic controller for the skills install modal.
+ * Coordinates data loading, selection state, and keyboard actions before delegating UI rendering.
  */
-import { t, bold, dim, green, red, cyan } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { Extension } from "../types/extension";
 import { ocTheme } from "../theme";
 import { useTerminalSize } from "../hooks/useTerminalSize";
 import { fetchAvailableSkills } from "../services/installation/skillsInstaller";
-import { homedir } from "os";
+import { SkillInstallModalView } from "./skill-install-modal-view";
 
 interface SkillInstallModalProps {
   extension: Extension | null;
@@ -44,10 +43,10 @@ export function SkillInstallModal({
   const [cursor, setCursor] = useState(0);
   const [scroll, setScroll] = useState(0);
 
-  const cwd = useMemo(() => process.cwd(), []);
   const modalWidth = Math.floor(termWidth * 0.6);
   const modalHeight = Math.floor(termHeight * 0.6);
-  const listHeight = Math.max(3, modalHeight - 12);
+  const chromeLines = 1 + 3 + 2 + 2 + 2 + 2;
+  const listHeight = Math.max(3, modalHeight - chromeLines);
 
   useEffect(() => {
     const treeUrl = extension?.install_command ?? extension?.repository_url;
@@ -95,6 +94,8 @@ export function SkillInstallModal({
     next.has(skill) ? next.delete(skill) : next.add(skill);
     setSelected(next);
   };
+  const clamp = (value: number, min: number, max: number) =>
+    Math.max(min, Math.min(max, value));
 
   useKeyboard((key) => {
     if (!isVisible) return;
@@ -155,114 +156,46 @@ export function SkillInstallModal({
         : ocTheme.accent;
 
   // Result screen
-  if (status === "success" || (status === "error" && !skills.length)) {
-    return (
-      <box
-        style={{
-          position: "absolute",
-          left: "50%",
-          top: "50%",
-          marginLeft: -Math.floor(modalWidth / 2),
-          marginTop: -Math.floor(modalHeight / 2),
-          width: modalWidth,
-          height: modalHeight,
-          zIndex: 120,
-        }}
-        backgroundColor={ocTheme.background}
-        borderStyle="double"
-        borderColor={borderColor}
-        flexDirection="column"
-        padding={1}
-      >
-        <text
-          content={t`${status === "success" ? green("✔ Success") : red("✘ Error")}`}
-        />
-        <box marginTop={1}>
-          <text content={t`${message}`} />
-        </box>
-        <box marginTop={2}>
-          <text content={t`${green("[Enter]")} Close`} />
-        </box>
-      </box>
-    );
-  }
-
-  const visible = skills.slice(scroll, scroll + listHeight);
-
   return (
-    <box
-      style={{
-        position: "absolute",
-        left: "50%",
-        top: "50%",
-        marginLeft: -Math.floor(modalWidth / 2),
-        marginTop: -Math.floor(modalHeight / 2),
-        width: modalWidth,
-        height: modalHeight,
-        zIndex: 120,
-      }}
-      backgroundColor={ocTheme.background}
-      borderStyle="double"
+    <SkillInstallModalView
+      extensionName={extension.name}
+      skills={skills}
+      selected={selected}
+      selectedCount={selected.size}
+      cursor={cursor}
+      scroll={scroll}
+      listHeight={listHeight}
+      modalWidth={modalWidth}
+      modalHeight={modalHeight}
       borderColor={borderColor}
-      flexDirection="column"
-      padding={1}
-    >
-      <box flexShrink={0}>
-        <text
-          content={t`${bold(`📦 ${extension.name}`)} ${dim(`(${skills.length} skills)`)}`}
-        />
-      </box>
-
-      {status === "fetching" ? (
-        <box flexGrow={1} justifyContent="center">
-          <text content={t`${dim("Loading...")}`} />
-        </box>
-      ) : (
-        <box flexDirection="column" flexGrow={1} marginTop={1}>
-          <text content={t`${dim("[a] all  [n] none  [Space] toggle")}`} />
-
-          <box
-            flexDirection="column"
-            height={listHeight}
-            borderStyle="single"
-            borderColor={focus === "list" ? ocTheme.accent : ocTheme.border}
-            marginTop={1}
-          >
-            {visible.map((skill, i) => {
-              const idx = scroll + i;
-              const isCur = idx === cursor && focus === "list";
-              const isSel = selected.has(skill);
-              return (
-                <box key={skill}>
-                  <text
-                    content={t`${isCur ? cyan(">") : " "} ${isSel ? green("[✓]") : dim("[ ]")} ${isCur ? bold(skill) : skill}`}
-                  />
-                </box>
-              );
-            })}
-          </box>
-
-          <box
-            marginTop={1}
-            borderStyle="single"
-            borderColor={focus === "scope" ? ocTheme.accent : ocTheme.border}
-            paddingLeft={1}
-          >
-            <text
-              content={t`${focus === "scope" ? cyan(">") : " "} ${scope === "local" ? bold(green("Local")) : dim("Local")} | ${scope === "global" ? bold(green("Global")) : dim("Global")}`}
-            />
-          </box>
-          <text
-            content={t`${dim("→")} ${scope === "local" ? `${cwd}/.opencode/skill/` : `${homedir()}/.config/opencode/skill/`}`}
-          />
-        </box>
-      )}
-
-      <box flexShrink={0} marginTop={1}>
-        <text
-          content={t`${dim(`${selected.size}/${skills.length} selected`)}  ${focus === "confirm" ? cyan("[Enter]") : dim("[Enter]")} Install  ${red("[Esc]")} Cancel`}
-        />
-      </box>
-    </box>
+      focus={focus}
+      scope={scope}
+      status={status}
+      message={message}
+      onClose={onClose}
+      onToggleSkill={(skill, index) => {
+        setFocus("list");
+        setCursor(index);
+        toggle(skill);
+      }}
+      onScroll={(direction, delta) => {
+        const maxScroll = Math.max(0, skills.length - listHeight);
+        if (direction === "up") {
+          setScroll((prev) => clamp(prev - delta, 0, maxScroll));
+          setCursor((prev) => clamp(prev - delta, 0, skills.length - 1));
+        } else {
+          setScroll((prev) => clamp(prev + delta, 0, maxScroll));
+          setCursor((prev) => clamp(prev + delta, 0, skills.length - 1));
+        }
+      }}
+      onSelectScope={(nextScope) => {
+        setScope(nextScope);
+        setFocus("scope");
+      }}
+      onConfirm={() => {
+        setFocus("confirm");
+        handleConfirm();
+      }}
+    />
   );
 }

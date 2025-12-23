@@ -1,13 +1,18 @@
-import { t, dim, bold, cyan } from "@opentui/core";
+/**
+ * Sidebar navigation for the config editor modal.
+ * Renders selectable sections and supports mouse-driven section switching.
+ */
+
+import { MouseButton, t, dim, bold, cyan } from "@opentui/core";
 import { ocTheme } from "../../theme";
 import { SECTIONS, type ConfigSectionId } from "../../types/config";
 
 interface ConfigSidebarProps {
   activeSection: ConfigSectionId;
-  onSelect: (section: ConfigSectionId) => void; // Kept for interface completeness even if unused in render logic currently
+  onSelect: (section: ConfigSectionId) => void;
 }
 
-export function ConfigSidebar({ activeSection }: ConfigSidebarProps) {
+export function ConfigSidebar({ activeSection, onSelect }: ConfigSidebarProps) {
   return (
     <box
       flexDirection="column"
@@ -25,7 +30,14 @@ export function ConfigSidebar({ activeSection }: ConfigSidebarProps) {
           const label = isActive ? bold(cyan(`> ${section.label}`)) : dim(`  ${section.label}`);
           
           return (
-            <box key={section.id} height={1}>
+            <box
+              key={section.id}
+              height={1}
+              onMouseDown={(event) => {
+                if (event.button !== MouseButton.LEFT) return;
+                onSelect(section.id);
+              }}
+            >
               <text content={t`${label}`} />
             </box>
           );
