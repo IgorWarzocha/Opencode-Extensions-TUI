@@ -12,6 +12,7 @@ import { ExtensionDetails } from "./detail/ExtensionDetails";
 import { StatusBar } from "./components/StatusBar";
 import { ScriptModal } from "./components/ScriptModal";
 import { NpmInstallModal } from "./components/NpmInstallModal";
+import { ConfigEditorModal } from "./components/ConfigEditorModal";
 import { AppLayout } from "./components/AppLayout";
 import { ExtensionList } from "./components/ExtensionList";
 import { AppKeyboardHandler } from "./components/AppKeyboardHandler";
@@ -41,6 +42,7 @@ export default function App() {
 
   const { height: terminalHeight, dimensions } = useTerminalSize();
   const [detailsExtension, setDetailsExtension] = useState<Extension | null>(null);
+  const [showConfigModal, setShowConfigModal] = useState(false);
 
   const { availableWidth, maxLine } = dimensions;
   const { mode, windowSize } = calculateLayout({
@@ -97,7 +99,8 @@ export default function App() {
           const next = await reloadExtensionData();
           setExtensions(next);
         }}
-        isBlocked={showScriptModal || showNpmModal}
+        onOpenConfig={() => setShowConfigModal(true)}
+        isBlocked={showScriptModal || showNpmModal || showConfigModal}
       />
       <AppLayout
         sidebar={<CategorySidebar selectedCategory={selectedCategory} />}
@@ -142,6 +145,10 @@ export default function App() {
         isVisible={showNpmModal}
         onClose={handleNpmModalClose}
         onConfirm={handleNpmModalConfirm}
+      />
+      <ConfigEditorModal
+        isVisible={showConfigModal}
+        onClose={() => setShowConfigModal(false)}
       />
     </>
   );

@@ -25,6 +25,7 @@ export interface AppKeyboardHandlerProps {
   onInstall: (ext: Extension) => Promise<void>;
   onUninstall: (ext: Extension) => Promise<void>;
   reloadExtensions: () => Promise<void>;
+  onOpenConfig: () => void;
   /** When true, keyboard navigation is blocked (e.g., modal is open) */
   isBlocked?: boolean;
 }

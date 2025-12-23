@@ -9,7 +9,7 @@ import { homedir } from "os";
 export type ConfigScope = "global" | "local";
 
 export class OpencodeConfigService {
-  private getConfigPath(scope: ConfigScope, customPath?: string): string {
+  public getConfigPath(scope: ConfigScope, customPath?: string): string {
     if (customPath) return customPath;
     
     if (scope === "global") {
@@ -17,6 +17,30 @@ export class OpencodeConfigService {
     }
     
     return join(process.cwd(), "opencode.json");
+  }
+
+  public getConfig(scope: ConfigScope): { path: string; content: string | null; exists: boolean } {
+    const path = this.getConfigPath(scope);
+    const exists = existsSync(path);
+    return {
+      path,
+      exists,
+      content: exists ? readFileSync(path, "utf-8") : null,
+    };
+  }
+
+  public createDefaultConfig(scope: ConfigScope): void {
+    const path = this.getConfigPath(scope);
+    if (existsSync(path)) return;
+    this.ensureDirectoryExists(path);
+    const initialContent = `{\n  "plugin": []\n}\n`;
+    writeFileSync(path, initialContent, "utf-8");
+  }
+
+  public writeConfig(scope: ConfigScope, content: string): void {
+    const path = this.getConfigPath(scope);
+    this.ensureDirectoryExists(path);
+    writeFileSync(path, content, "utf-8");
   }
 
   private ensureDirectoryExists(filePath: string) {

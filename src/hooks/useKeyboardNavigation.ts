@@ -32,6 +32,7 @@ export interface KeyboardNavigationConfig {
   onInstall: (ext: Extension) => Promise<void>;
   onUninstall: (ext: Extension) => Promise<void>;
   reloadExtensions: () => Promise<void>;
+  onOpenConfig: () => void;
   /** When true, keyboard navigation is blocked (e.g., modal is open) */
   isBlocked?: boolean;
 }
@@ -60,6 +61,7 @@ export function useKeyboardNavigation(config: KeyboardNavigationConfig) {
       onInstall,
       onUninstall,
       reloadExtensions,
+      onOpenConfig,
       isBlocked,
     } = configRef.current;
 
@@ -168,6 +170,11 @@ export function useKeyboardNavigation(config: KeyboardNavigationConfig) {
         break;
       case "/":
         setView("search");
+        break;
+      case "e":
+        if (key.ctrl) {
+           onOpenConfig();
+        }
         break;
       default:
         break;
