@@ -218,10 +218,71 @@ export class SchemaHelper {
           providerData.models,
         )) {
           if (!existingModelIds.has(modelId)) {
-            suggestedModels[modelId] = {
+            // Include ALL metadata from the model
+            const modelConfig: Record<string, unknown> = {
               id: modelMeta.id,
               name: modelMeta.name,
             };
+
+            // Add family if available
+            if (modelMeta.family) {
+              modelConfig.family = modelMeta.family;
+            }
+
+            // Add capability flags
+            if (modelMeta.reasoning !== undefined) {
+              modelConfig.reasoning = modelMeta.reasoning;
+            }
+            if (modelMeta.tool_call !== undefined) {
+              modelConfig.tool_call = modelMeta.tool_call;
+            }
+            if (modelMeta.attachment !== undefined) {
+              modelConfig.attachment = modelMeta.attachment;
+            }
+            if (modelMeta.temperature !== undefined) {
+              modelConfig.temperature = modelMeta.temperature;
+            }
+            if (modelMeta.structured_output !== undefined) {
+              modelConfig.structured_output = modelMeta.structured_output;
+            }
+
+            // Add interleaved info if available
+            if (modelMeta.interleaved !== undefined) {
+              modelConfig.interleaved = modelMeta.interleaved;
+            }
+
+            // Add limit info if available
+            if (modelMeta.limit) {
+              modelConfig.limit = {
+                context: modelMeta.limit.context,
+                output: modelMeta.limit.output,
+              };
+            }
+
+            // Add cost info if available
+            if (modelMeta.cost) {
+              const costObj: Record<string, number> = {
+                input: modelMeta.cost.input,
+                output: modelMeta.cost.output,
+              };
+              if (modelMeta.cost.cache_read !== undefined) {
+                costObj.cache_read = modelMeta.cost.cache_read;
+              }
+              if (modelMeta.cost.cache_write !== undefined) {
+                costObj.cache_write = modelMeta.cost.cache_write;
+              }
+              if (modelMeta.cost.reasoning !== undefined) {
+                costObj.reasoning = modelMeta.cost.reasoning;
+              }
+              modelConfig.cost = costObj;
+            }
+
+            // Add modalities if available
+            if (modelMeta.modalities) {
+              modelConfig.modalities = modelMeta.modalities;
+            }
+
+            suggestedModels[modelId] = modelConfig;
           }
         }
 
