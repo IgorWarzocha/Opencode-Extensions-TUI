@@ -10,13 +10,13 @@ export interface OpencodeConfig {
   plugin?: string[];
   disabled_providers?: string[];
   enabled_providers?: string[];
-  
+
   // Complex objects
   agent?: Record<string, any>;
   provider?: Record<string, any>;
   mcp?: Record<string, any>;
   keybinds?: Record<string, string>;
-  
+
   // Allow others
   [key: string]: any;
 }
@@ -27,8 +27,9 @@ export const SECTIONS = [
   { id: "agents", label: "Agents" },
   { id: "providers", label: "Providers" },
   { id: "mcp", label: "MCP Servers" },
+  { id: "skills", label: "Skills" },
   { id: "keybinds", label: "Keybindings" },
   { id: "raw", label: "Raw JSON" },
 ] as const;
 
-export type ConfigSectionId = typeof SECTIONS[number]["id"];
+export type ConfigSectionId = (typeof SECTIONS)[number]["id"];

@@ -8,7 +8,15 @@ const EXTENSIONS_ROOT = "./extensions";
 const DB_PATH = "extensions.db";
 
 // Valid categories (plural form)
-const CATEGORIES = ['Plugins', 'Agents', 'Tools', 'Commands', 'Themes', 'Bundles'];
+const CATEGORIES = [
+  "Plugins",
+  "Agents",
+  "Tools",
+  "Commands",
+  "Themes",
+  "Bundles",
+  "Skills",
+];
 
 // Helper to convert repo URL to raw content URL
 function getRawReadmeUrl(repoUrl: string): string | null {
@@ -21,16 +29,19 @@ function getRawReadmeUrl(repoUrl: string): string | null {
   return null;
 }
 
-async function loadReadme(extensionId: string, repoUrl: string): Promise<string> {
+async function loadReadme(
+  extensionId: string,
+  repoUrl: string,
+): Promise<string> {
   const rawUrl = getRawReadmeUrl(repoUrl);
-  
+
   if (!rawUrl) {
     return "";
   }
 
   try {
     let response = await fetch(rawUrl);
-    
+
     if (!response.ok) {
       const masterUrl = rawUrl.replace("/main/", "/master/");
       response = await fetch(masterUrl);
@@ -42,14 +53,58 @@ async function loadReadme(extensionId: string, repoUrl: string): Promise<string>
 
     const text = await response.text();
     return text.trim();
-
   } catch {
     return "";
   }
 }
 
-async function main() {
+// Helper to parse GitHub URL and fetch directory contents
+async function fetchRemoteSkills(sourceRepoUrl: string) {
+  try {
+    // 1. Parse URL: https://github.com/owner/repo/tree/branch/path
+    const match = sourceRepoUrl.match(
+      /github\.com\/([^\/]+)\/([^\/]+)\/tree\/([^\/]+)\/(.+)/,
+    );
+    if (!match) {
+      console.warn(
+        `  ⚠️  Invalid GitHub URL format for skills source: ${sourceRepoUrl}`,
+      );
+      return [];
+    }
 
+    const [, owner, repo, branch, path] = match;
+    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`;
+
+    console.log(`  🌐 Fetching skills from: ${apiUrl}`);
+    const response = await fetch(apiUrl);
+
+    if (!response.ok) {
+      console.error(
+        `  ❌ GitHub API error: ${response.status} ${response.statusText}`,
+      );
+      return [];
+    }
+
+    const data = (await response.json()) as any[];
+
+    // 2. Filter for directories and map to extension objects
+    return data
+      .filter((item: any) => item.type === "dir")
+      .map((item: any) => ({
+        name: item.name
+          .split("-")
+          .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
+          .join(" "),
+        pathName: item.name,
+        url: item.html_url,
+      }));
+  } catch (e) {
+    console.error(`  ❌ Error fetching skills from ${sourceRepoUrl}:`, e);
+    return [];
+  }
+}
+
+async function main() {
   const db = new Database(DB_PATH);
 
   // Schema Setup
@@ -69,7 +124,8 @@ async function main() {
       category TEXT NOT NULL,
       install_command TEXT,
       install_method TEXT,
-      featured INTEGER DEFAULT 0
+      featured INTEGER DEFAULT 0,
+      data TEXT
     );
 
     CREATE TABLE categories (
@@ -91,7 +147,8 @@ async function main() {
     ('Tools', 'Tools', 'Custom tools for extended functionality'),
     ('Commands', 'Commands', 'Custom commands and command extensions'),
     ('Themes', 'Themes', 'Visual themes and color schemes for TUI'),
-    ('Bundles', 'Bundles', 'Complete configuration packages and setups');
+    ('Bundles', 'Bundles', 'Complete configuration packages and setups'),
+    ('Skills', 'Skills', 'Model Context Protocol (MCP) skills collection');
   `);
 
   const insertStmt = db.prepare(`
@@ -106,26 +163,25 @@ async function main() {
       category, 
       install_command, 
       install_method,
-      featured
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      featured,
+      data
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
-
-
 
   let totalCount = 0;
 
   for (const category of CATEGORIES) {
     const categoryDir = join(EXTENSIONS_ROOT, category);
     console.log(`🔍 Checking category: ${category} at ${categoryDir}`);
-    
+
     if (!existsSync(categoryDir)) {
       console.log(`❌ Directory not found: ${categoryDir}`);
       continue;
     }
 
-    const files = readdirSync(categoryDir).filter(f => f.endsWith(".json"));
+    const files = readdirSync(categoryDir).filter((f) => f.endsWith(".json"));
     console.log(`📁 Found ${files.length} files in ${categoryDir}:`, files);
-    
+
     for (const file of files) {
       try {
         const filePath = join(categoryDir, file);
@@ -134,6 +190,16 @@ async function main() {
 
         // Async load of readme
         const readme = await loadReadme(ext.id, ext.repository_url);
+        let extraData = null;
+
+        // HANDLE SKILLS COLLECTIONS (Pack Mode)
+        if (ext.install_method === "skills" && ext.install_command) {
+          console.log(`  📦 Fetching Skills Pack contents: ${ext.name}`);
+          const skills = await fetchRemoteSkills(ext.install_command);
+          // Store the fetched skills list as a JSON string in the data column
+          extraData = JSON.stringify(skills);
+          console.log(`    -> Pack contains ${skills.length} skills`);
+        }
 
         insertStmt.run(
           ext.id,
@@ -146,12 +212,14 @@ async function main() {
           ext.category,
           ext.install_command || null,
           ext.install_method || null,
-          ext.featured ? 1 : 0
+          ext.featured ? 1 : 0,
+          extraData,
         );
 
-        console.log(`  ✅ Loaded ${category}/${ext.id} (${readme.length} chars)`);
+        console.log(
+          `  ✅ Loaded ${category}/${ext.id} (${readme.length} chars)`,
+        );
         totalCount++;
-
       } catch (e) {
         console.error(`  ❌ Failed to load ${file}:`, e);
       }
@@ -164,7 +232,9 @@ async function main() {
     SELECT rowid, name, description, readme, author FROM extensions
   `);
 
-  console.log(`\n🎉 Database built successfully with ${totalCount} extensions.`);
+  console.log(
+    `\n🎉 Database built successfully with ${totalCount} extensions.`,
+  );
   db.close();
 }
 

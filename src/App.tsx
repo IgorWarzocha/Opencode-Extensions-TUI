@@ -12,6 +12,7 @@ import { ExtensionDetails } from "./detail/ExtensionDetails";
 import { StatusBar } from "./components/StatusBar";
 import { ScriptModal } from "./components/ScriptModal";
 import { NpmInstallModal } from "./components/NpmInstallModal";
+import { SkillInstallModal } from "./components/SkillInstallModal";
 import { ConfigEditorModal } from "./components/ConfigEditorModal";
 import { AppLayout } from "./components/AppLayout";
 import { ExtensionList } from "./components/ExtensionList";
@@ -27,7 +28,10 @@ import { getNextKeybindMode } from "./keybinds/keybinds.js";
 import { metadataService } from "./services/MetadataService.js";
 
 export default function App() {
-  const { extensions: loadedExtensions, reloadExtensions: reloadExtensionData } = useExtensionData();
+  const {
+    extensions: loadedExtensions,
+    reloadExtensions: reloadExtensionData,
+  } = useExtensionData();
 
   useEffect(() => {
     // Start fetching metadata in background
@@ -50,7 +54,9 @@ export default function App() {
   } = useExtensionsState(loadedExtensions);
 
   const { height: terminalHeight, dimensions } = useTerminalSize();
-  const [detailsExtension, setDetailsExtension] = useState<Extension | null>(null);
+  const [detailsExtension, setDetailsExtension] = useState<Extension | null>(
+    null,
+  );
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [keybindMode, setKeybindMode] = useState<KeybindMode>("oc");
   const [keybindStatus, setKeybindStatus] = useState<KeybindStatus>({
@@ -77,6 +83,9 @@ export default function App() {
     handleScriptModalConfirm,
     handleNpmModalClose,
     handleNpmModalConfirm,
+    showSkillModal,
+    handleSkillModalClose,
+    handleSkillModalConfirm,
   } = useInstallFlow(setExtensions);
 
   // Sync details view cleanup
@@ -120,26 +129,30 @@ export default function App() {
           setExtensions(next);
         }}
         onOpenConfig={() => setShowConfigModal(true)}
-        isBlocked={showScriptModal || showNpmModal || showConfigModal}
+        isBlocked={
+          showScriptModal || showNpmModal || showSkillModal || showConfigModal
+        }
       />
       <AppLayout
         sidebar={<CategorySidebar selectedCategory={selectedCategory} />}
         header={
-          view !== 'details' ? (
+          view !== "details" ? (
             <SearchHeader
               searchQuery={searchQuery}
               totalCount={extensions.length}
-              installedCount={extensions.filter((e) => e.status === 'installed').length}
-              isSearching={view === 'search'}
+              installedCount={
+                extensions.filter((e) => e.status === "installed").length
+              }
+              isSearching={view === "search"}
             />
           ) : null
         }
         body={
-          view === 'details' && detailsExtension ? (
+          view === "details" && detailsExtension ? (
             <ExtensionDetails
               extension={detailsExtension}
-              isActive={view === 'details' && !showScriptModal && !showNpmModal}
-              onClose={() => setView('list')}
+              isActive={view === "details" && !showScriptModal && !showNpmModal}
+              onClose={() => setView("list")}
             />
           ) : (
             <ExtensionList
@@ -172,6 +185,12 @@ export default function App() {
         isVisible={showNpmModal}
         onClose={handleNpmModalClose}
         onConfirm={handleNpmModalConfirm}
+      />
+      <SkillInstallModal
+        extension={pendingInstallExtension}
+        isVisible={showSkillModal}
+        onClose={handleSkillModalClose}
+        onConfirm={handleSkillModalConfirm}
       />
       <ConfigEditorModal
         isVisible={showConfigModal}

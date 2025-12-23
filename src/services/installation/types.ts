@@ -15,9 +15,18 @@ export type InstallationResult =
   | { success: true; extensionId: string }
   | { success: false; error: InstallationError };
 
-export type StatusUpdateCallback = (extensionId: string, status: "installed" | "available") => void;
+export type StatusUpdateCallback = (
+  extensionId: string,
+  status: "installed" | "available",
+) => void;
 
-export type InstallationMethod = "npm" | "drop" | "bash" | "agents" | "manual";
+export type InstallationMethod =
+  | "npm"
+  | "drop"
+  | "bash"
+  | "agents"
+  | "skills"
+  | "manual";
 
 /**
  * Installation configuration options for flexible installation behavior.
@@ -28,4 +37,5 @@ export interface InstallationOptions {
   global?: boolean;
   customCommand?: string;
   targetPath?: string;
+  selectedSkills?: string[];
 }

@@ -11,7 +11,6 @@ import {
   ExtensionHeader,
   ExtensionDescription,
   ExtensionInstallation,
-  // removed ExtensionCuratorNotes per request
 } from "./components/ExtensionInfo";
 
 interface ExtensionDetailsProps {
@@ -20,12 +19,27 @@ interface ExtensionDetailsProps {
   isActive?: boolean;
 }
 
-export function ExtensionDetails({ extension, isActive = true }: ExtensionDetailsProps) {
+export function ExtensionDetails({
+  extension,
+  isActive = true,
+}: ExtensionDetailsProps) {
+  const isSkillsBundle = extension.install_method === "skills";
   const { readmeData, isLoading, error, hasContent } = useReadmeData(extension);
   const syntaxStyle = createSyntaxStyle();
   const scrollboxRef = useRef<ScrollBoxRenderable | null>(null);
 
-  const readmeContent = readmeData.readme ?? "";
+  // For skills bundles, generate a simple readme from skills data
+  const readmeContent = useMemo(() => {
+    if (isSkillsBundle && extension.data?.length) {
+      const skillsList = extension.data
+        .map((s) => `- **${s.name}** (\`${s.pathName}\`)`)
+        .join("\n");
+      return `# ${extension.name}\n\n${extension.description}\n\n## Available Skills (${extension.data.length})\n\n${skillsList}`;
+    }
+    return readmeData.readme ?? "";
+  }, [isSkillsBundle, extension, readmeData.readme]);
+
+  const showReadme = isSkillsBundle ? true : hasContent && !isLoading && !error;
 
   return (
     <box flexDirection="column" flexGrow={1} flexShrink={1} padding={1}>
@@ -36,20 +50,20 @@ export function ExtensionDetails({ extension, isActive = true }: ExtensionDetail
           <ExtensionInstallation extension={extension} />
         </box>
 
-        {isLoading && (
+        {!isSkillsBundle && isLoading && (
           <box marginBottom={1}>
             <text content={t`${yellow("Loading README data...")}`} />
           </box>
         )}
 
-        {error && (
+        {!isSkillsBundle && error && (
           <box marginBottom={1}>
             <text content={t`${yellow(`Error: ${error.message}`)}`} />
           </box>
         )}
       </box>
 
-      {hasContent && !isLoading && !error ? (
+      {showReadme ? (
         <scrollbox
           ref={(ref) => {
             scrollboxRef.current = ref;

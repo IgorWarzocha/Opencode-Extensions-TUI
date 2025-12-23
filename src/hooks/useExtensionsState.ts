@@ -26,6 +26,7 @@ export function useExtensionsState(initialExtensions: Extension[]) {
     Agents: "Agents",
     Commands: "Commands",
     Tools: "Tools",
+    Skills: "Skills",
     Themes: "Themes",
     Bundles: "Bundles",
   };
@@ -41,8 +42,7 @@ export function useExtensionsState(initialExtensions: Extension[]) {
       const matchesFeatured = !isFeatured || ext.featured;
       const desc = ext.description?.toLowerCase() ?? "";
       const matchesSearch =
-        ext.name.toLowerCase().includes(query) ||
-        desc.includes(query);
+        ext.name.toLowerCase().includes(query) || desc.includes(query);
       return matchesCategory && matchesFeatured && matchesSearch;
     });
   }, [extensions, searchQuery, selectedCategory]);
@@ -55,9 +55,14 @@ export function useExtensionsState(initialExtensions: Extension[]) {
 
   const currentExtension = filteredExtensions[selectedIndex];
 
-  const updateExtensionStatus = (extensionId: string, status: ExtensionStatus) => {
+  const updateExtensionStatus = (
+    extensionId: string,
+    status: ExtensionStatus,
+  ) => {
     setExtensions((prev) =>
-      prev.map((ext) => (String(ext.id) === String(extensionId) ? { ...ext, status } : ext))
+      prev.map((ext) =>
+        String(ext.id) === String(extensionId) ? { ...ext, status } : ext,
+      ),
     );
   };
 

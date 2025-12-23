@@ -9,28 +9,34 @@ import { InstallationService } from "../services/installation/InstallationServic
 import { getErrorMessage } from "../services/installation/InstallationError";
 import { OpencodeConfigService } from "../services/config/OpencodeConfigService";
 import type { InstallSelection } from "../components/NpmInstallModal";
+import type { SkillInstallSelection } from "../components/SkillInstallModal";
 
 function derivePackageName(extension: Extension): string {
   // Prefer explicit install command when it is a package name; otherwise fall back to name
   // With the current schema we do not store package_name separately
-  if (extension.install_command && extension.install_method === 'npm') {
+  if (extension.install_command && extension.install_method === "npm") {
     return extension.install_command;
   }
   return extension.name;
 }
 
 export function useInstallFlow(
-  setExtensions: React.Dispatch<React.SetStateAction<Extension[]>>
+  setExtensions: React.Dispatch<React.SetStateAction<Extension[]>>,
 ) {
   const [showScriptModal, setShowScriptModal] = useState(false);
   const [showNpmModal, setShowNpmModal] = useState(false);
-  const [pendingInstallExtension, setPendingInstallExtension] = useState<Extension | null>(null);
+  const [showSkillModal, setShowSkillModal] = useState(false);
+  const [pendingInstallExtension, setPendingInstallExtension] =
+    useState<Extension | null>(null);
 
   const installationService = new InstallationService();
 
-  const handleInstall = async (extension: Extension, options: InstallationOptions = {}) => {
+  const handleInstall = async (
+    extension: Extension,
+    options: InstallationOptions = {},
+  ) => {
     // Bash extension -> Script Modal for review
-    if (extension.install_method === 'bash') {
+    if (extension.install_method === "bash") {
       setPendingInstallExtension(extension);
       setShowScriptModal(true);
       return;
@@ -38,26 +44,40 @@ export function useInstallFlow(
 
     // NPM extension or Agent extension -> Options Modal for global/local choice
     if (
-      extension.install_method === 'npm' ||
-      extension.install_method === 'agents'
+      extension.install_method === "npm" ||
+      extension.install_method === "agents"
     ) {
       setPendingInstallExtension(extension);
       setShowNpmModal(true);
       return;
     }
 
+    if (extension.install_method === "skills") {
+      setPendingInstallExtension(extension);
+      setShowSkillModal(true);
+      return;
+    }
+
     // Direct install (e.g. drop)
-    await installationService.install(extension, options, (extensionId, status) => {
-      setExtensions((prev) =>
-        prev.map((ext) => (String(ext.id) === String(extensionId) ? { ...ext, status } : ext))
-      );
-    });
+    await installationService.install(
+      extension,
+      options,
+      (extensionId, status) => {
+        setExtensions((prev) =>
+          prev.map((ext) =>
+            String(ext.id) === String(extensionId) ? { ...ext, status } : ext,
+          ),
+        );
+      },
+    );
   };
 
   const handleUninstall = async (extension: Extension) => {
     await installationService.uninstall(extension, (extensionId, status) => {
       setExtensions((prev) =>
-        prev.map((ext) => (String(ext.id) === String(extensionId) ? { ...ext, status } : ext))
+        prev.map((ext) =>
+          String(ext.id) === String(extensionId) ? { ...ext, status } : ext,
+        ),
       );
     });
   };
@@ -69,9 +89,12 @@ export function useInstallFlow(
     setPendingInstallExtension(null);
   };
 
-  const handleScriptModalConfirm = async (): Promise<{ success: boolean; error?: string }> => {
+  const handleScriptModalConfirm = async (): Promise<{
+    success: boolean;
+    error?: string;
+  }> => {
     if (!pendingInstallExtension?.install_command) {
-      return { success: false, error: 'No install command' };
+      return { success: false, error: "No install command" };
     }
 
     const result = await installationService.install(pendingInstallExtension);
@@ -79,8 +102,10 @@ export function useInstallFlow(
     if (result.success) {
       setExtensions((prev) =>
         prev.map((ext) =>
-          ext.id === pendingInstallExtension!.id ? { ...ext, status: 'installed' } : ext
-        )
+          ext.id === pendingInstallExtension!.id
+            ? { ...ext, status: "installed" }
+            : ext,
+        ),
       );
       return { success: true };
     } else {
@@ -95,22 +120,30 @@ export function useInstallFlow(
     setPendingInstallExtension(null);
   };
 
-  const handleNpmModalConfirm = async (selection: InstallSelection): Promise<{ success: boolean; message?: string }> => {
-    if (!pendingInstallExtension) return { success: false, message: "No extension selected" };
+  const handleNpmModalConfirm = async (
+    selection: InstallSelection,
+  ): Promise<{ success: boolean; message?: string }> => {
+    if (!pendingInstallExtension)
+      return { success: false, message: "No extension selected" };
 
-    const isGlobal = selection.scope === 'global';
+    const isGlobal = selection.scope === "global";
 
-    if (pendingInstallExtension.install_method === 'npm') {
+    if (pendingInstallExtension.install_method === "npm") {
       const configService = new OpencodeConfigService();
       const packageName = derivePackageName(pendingInstallExtension);
-      
-      const result = await configService.addPlugin(packageName, selection.scope);
+
+      const result = await configService.addPlugin(
+        packageName,
+        selection.scope,
+      );
 
       if (result.success) {
         setExtensions((prev) =>
           prev.map((ext) =>
-            ext.id === pendingInstallExtension!.id ? { ...ext, status: 'installed' } : ext
-          )
+            ext.id === pendingInstallExtension!.id
+              ? { ...ext, status: "installed" }
+              : ext,
+          ),
         );
         return { success: true, message: result.message };
       } else {
@@ -119,16 +152,24 @@ export function useInstallFlow(
       }
     }
 
-    if (pendingInstallExtension.install_method === 'agents') {
-      const result = await installationService.install(pendingInstallExtension, { global: isGlobal });
+    if (pendingInstallExtension.install_method === "agents") {
+      const result = await installationService.install(
+        pendingInstallExtension,
+        { global: isGlobal },
+      );
 
       if (result.success) {
         setExtensions((prev) =>
           prev.map((ext) =>
-            ext.id === pendingInstallExtension!.id ? { ...ext, status: 'installed' } : ext
-          )
+            ext.id === pendingInstallExtension!.id
+              ? { ...ext, status: "installed" }
+              : ext,
+          ),
         );
-        return { success: true, message: `Agent installed ${isGlobal ? 'globally' : 'locally'}.` };
+        return {
+          success: true,
+          message: `Agent installed ${isGlobal ? "globally" : "locally"}.`,
+        };
       } else {
         return { success: false, message: getErrorMessage(result.error) };
       }
@@ -137,9 +178,46 @@ export function useInstallFlow(
     return { success: false, message: "Unsupported install method" };
   };
 
+  // --- Skill Modal Handlers ---
+
+  const handleSkillModalClose = () => {
+    setShowSkillModal(false);
+    setPendingInstallExtension(null);
+  };
+
+  const handleSkillModalConfirm = async (
+    selection: SkillInstallSelection,
+  ): Promise<{ success: boolean; message?: string }> => {
+    if (!pendingInstallExtension)
+      return { success: false, message: "No extension selected" };
+
+    const isGlobal = selection.scope === "global";
+    const result = await installationService.install(pendingInstallExtension, {
+      global: isGlobal,
+      selectedSkills: selection.selectedSkills,
+    });
+
+    if (result.success) {
+      setExtensions((prev) =>
+        prev.map((ext) =>
+          ext.id === pendingInstallExtension!.id
+            ? { ...ext, status: "installed" }
+            : ext,
+        ),
+      );
+      return {
+        success: true,
+        message: `Skills installed ${isGlobal ? "globally" : "locally"}.`,
+      };
+    } else {
+      return { success: false, message: getErrorMessage(result.error) };
+    }
+  };
+
   return {
     showScriptModal,
     showNpmModal,
+    showSkillModal,
     pendingInstallExtension,
     handleInstall,
     handleUninstall,
@@ -147,5 +225,7 @@ export function useInstallFlow(
     handleScriptModalConfirm,
     handleNpmModalClose,
     handleNpmModalConfirm,
+    handleSkillModalClose,
+    handleSkillModalConfirm,
   };
 }

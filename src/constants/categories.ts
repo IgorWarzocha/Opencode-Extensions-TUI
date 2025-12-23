@@ -9,18 +9,19 @@
  * Used throughout the application for consistent category handling.
  */
 export const CATEGORIES = [
-  'All',
-  'Featured',
-  'Plugins',
-  'Agents',
-  'Commands',
-  'Tools',
-  'Themes',
-  'Bundles',
+  "All",
+  "Featured",
+  "Plugins",
+  "Agents",
+  "Commands",
+  "Tools",
+  "Skills",
+  "Themes",
+  "Bundles",
 ] as const;
 
 /**
  * Type definition for category values derived from CATEGORIES array.
  * Provides type safety for category-related operations.
  */
-export type Category = typeof CATEGORIES[number];
+export type Category = (typeof CATEGORIES)[number];

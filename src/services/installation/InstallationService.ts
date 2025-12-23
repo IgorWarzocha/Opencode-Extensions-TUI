@@ -7,11 +7,16 @@
  * Delegates to method-specific installers (npm, drop, bash, agents) and handles status updates.
  */
 import type { Extension } from "../../types/extension";
-import type { InstallationOptions, InstallationResult, StatusUpdateCallback } from "./types.js";
+import type {
+  InstallationOptions,
+  InstallationResult,
+  StatusUpdateCallback,
+} from "./types.js";
 import { installNpm } from "./npmInstaller.js";
 import { installDrop } from "./dropInstaller.js";
 import { installBash } from "./bashInstaller.js";
 import { installAgent } from "./agentInstaller.js";
+import { installSkills } from "./skillsInstaller.js";
 import { executeCommand } from "./commandRunner.js";
 
 /**
@@ -22,7 +27,7 @@ export class InstallationService {
   async install(
     extension: Extension,
     options: InstallationOptions = {},
-    onStatusUpdate?: StatusUpdateCallback
+    onStatusUpdate?: StatusUpdateCallback,
   ): Promise<InstallationResult> {
     try {
       if (extension.status === "installed") {
@@ -43,6 +48,8 @@ export class InstallationService {
           return installBash(extension, options, onStatusUpdate);
         case "agents":
           return installAgent(extension, options, onStatusUpdate);
+        case "skills":
+          return installSkills(extension, options, onStatusUpdate);
         default:
           return {
             success: false,
@@ -67,7 +74,7 @@ export class InstallationService {
 
   async uninstall(
     extension: Extension,
-    onStatusUpdate?: StatusUpdateCallback
+    onStatusUpdate?: StatusUpdateCallback,
   ): Promise<InstallationResult> {
     try {
       if (extension.status !== "installed") {
