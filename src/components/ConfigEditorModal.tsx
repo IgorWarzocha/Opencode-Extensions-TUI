@@ -12,6 +12,7 @@ import { ScopedJsonEditor } from "./config/ScopedJsonEditor";
 import { RawConfigEditor } from "./config/RawConfigEditor";
 import { SectionListEditor } from "./config/SectionListEditor";
 import { parseJSONC } from "../utils/json";
+import { type ConfigItem } from "../utils/config-parser";
 
 interface ConfigEditorModalProps {
   isVisible: boolean;
@@ -27,22 +28,28 @@ export function ConfigEditorModal({ isVisible, onClose }: ConfigEditorModalProps
   const [rawContent, setRawContent] = useState<string>("");
   const [activeSection, setActiveSection] = useState<ConfigSectionId>("core");
   const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
+  
+  // Track editing state for sub-editors (SectionListEditor)
+  const [editingConfigItem, setEditingConfigItem] = useState<ConfigItem | null>(null);
 
   const modalWidth = Math.floor(termWidth * 0.9);
   const modalHeight = Math.floor(termHeight * 0.9);
 
   // Calculate available height for the editor content
-  // Modal Height - Borders(2) - Header(3) - Footer(1) = Container Height
-  // Container Height - Editor Borders(2) - Editor Padding(2) - Editor Header(2) - Editor Footer(2) = Text Area
-  // Roughly: modalHeight - 14
   const editorAreaHeight = Math.max(5, modalHeight - 14);
 
   useEffect(() => {
     if (isVisible) {
       loadConfig(scope);
       setMessage(null);
+      setEditingConfigItem(null);
     }
   }, [isVisible, scope]);
+  
+  // Reset editing item when changing sections
+  useEffect(() => {
+      setEditingConfigItem(null);
+  }, [activeSection]);
 
   const loadConfig = (s: ConfigScope) => {
     try {
@@ -93,17 +100,9 @@ export function ConfigEditorModal({ isVisible, onClose }: ConfigEditorModalProps
     }
   };
 
-  // Generic handler for partial updates
   const handleUpdate = (updates: Partial<OpencodeConfig>) => {
     const next = { ...config, ...updates };
     setConfig(next);
-    // Auto-save on specific actions? Maybe better to require manual save for safety
-    // But 'onSave' in ScopedJsonEditor implies immediate save.
-    // Let's autosave for Core/Plugins too to be consistent?
-    // User expects 'Ctrl+S' usually.
-    // CoreEditor updates immediately on change.
-    // Let's NOT autosave on every keystroke, but ScopedJsonEditor has Ctrl+S.
-    // CoreEditor and PluginEditor update state. We should listen for Ctrl+S global.
   };
 
   useKeyboard((key) => {
@@ -120,16 +119,25 @@ export function ConfigEditorModal({ isVisible, onClose }: ConfigEditorModalProps
     
     // Switch sections
     if (key.ctrl && key.name === "up") {
-       // Ideally we cycle activeSection
+       // Handled by ConfigSidebarKeyboardHandler for now, or move logic here
        return;
     }
 
     if (key.ctrl && key.name === "s") {
-        saveConfig(config);
+        // If we are editing a specific item in SectionListEditor, 
+        // the ScopedJsonEditor handles Ctrl+S internally via onSave prop.
+        // But if we are in CoreEditor, we might want global save here.
+        if (!editingConfigItem && activeSection !== 'raw') {
+             saveConfig(config);
+        }
     }
     
     if (key.name === "escape") {
-        onClose();
+        if (editingConfigItem) {
+            setEditingConfigItem(null);
+        } else {
+            onClose();
+        }
     }
   });
 
@@ -146,23 +154,44 @@ export function ConfigEditorModal({ isVisible, onClose }: ConfigEditorModalProps
             configService.writeConfig(scope, newRaw);
         }} height={editorAreaHeight} />;
       case "agents":
-        return <SectionListEditor rawContent={rawContent} sectionKey="agent" onChange={(newRaw) => {
-            setRawContent(newRaw);
-            try { setConfig(parseJSONC(newRaw)); } catch(e) {}
-            configService.writeConfig(scope, newRaw);
-        }} height={editorAreaHeight} />;
+        return <SectionListEditor 
+            rawContent={rawContent} 
+            sectionKey="agent" 
+            onChange={(newRaw) => {
+                setRawContent(newRaw);
+                try { setConfig(parseJSONC(newRaw)); } catch(e) {}
+                configService.writeConfig(scope, newRaw);
+            }} 
+            height={editorAreaHeight}
+            editingItem={editingConfigItem}
+            onEditItem={setEditingConfigItem}
+        />;
       case "providers":
-        return <SectionListEditor rawContent={rawContent} sectionKey="provider" onChange={(newRaw) => {
-            setRawContent(newRaw);
-            try { setConfig(parseJSONC(newRaw)); } catch(e) {}
-            configService.writeConfig(scope, newRaw);
-        }} height={editorAreaHeight} />;
+        return <SectionListEditor 
+            rawContent={rawContent} 
+            sectionKey="provider" 
+            onChange={(newRaw) => {
+                setRawContent(newRaw);
+                try { setConfig(parseJSONC(newRaw)); } catch(e) {}
+                configService.writeConfig(scope, newRaw);
+            }} 
+            height={editorAreaHeight}
+            editingItem={editingConfigItem}
+            onEditItem={setEditingConfigItem}
+        />;
       case "mcp":
-        return <SectionListEditor rawContent={rawContent} sectionKey="mcp" onChange={(newRaw) => {
-            setRawContent(newRaw);
-            try { setConfig(parseJSONC(newRaw)); } catch(e) {}
-            configService.writeConfig(scope, newRaw);
-        }} height={editorAreaHeight} />;
+        return <SectionListEditor 
+            rawContent={rawContent} 
+            sectionKey="mcp" 
+            onChange={(newRaw) => {
+                setRawContent(newRaw);
+                try { setConfig(parseJSONC(newRaw)); } catch(e) {}
+                configService.writeConfig(scope, newRaw);
+            }} 
+            height={editorAreaHeight}
+            editingItem={editingConfigItem}
+            onEditItem={setEditingConfigItem}
+        />;
       case "keybinds":
         return <ScopedJsonEditor data={config.keybinds || {}} onSave={(data) => {
            handleUpdate({ keybinds: data });
@@ -211,12 +240,6 @@ export function ConfigEditorModal({ isVisible, onClose }: ConfigEditorModalProps
       <box flexGrow={1} flexDirection="row">
         <ConfigSidebar activeSection={activeSection} onSelect={setActiveSection} />
         <box flexGrow={1} flexDirection="column">
-            {/* 
-                Problem: ConfigSidebar needs to capture keyboard for navigation, but 
-                Content needs capture for editing.
-                Solution: Use 'Tab' to toggle focus between Sidebar and Content?
-                Or Global shortcuts Ctrl+Up/Down for sidebar?
-            */}
             <ConfigSidebarKeyboardHandler 
                 activeSection={activeSection} 
                 onSelect={setActiveSection} 
@@ -227,7 +250,7 @@ export function ConfigEditorModal({ isVisible, onClose }: ConfigEditorModalProps
 
       {/* Footer */}
       <box height={1} paddingLeft={1} marginTop={0} backgroundColor={ocTheme.menu}>
-         <text content={t`${dim("Ctrl+Left/Right: Scope • Ctrl+Up/Down: Section • Ctrl+S: Save • Esc: Close")}`} />
+         <text content={t`${dim("Ctrl+Left/Right: Scope • Ctrl+Up/Down: Section • Ctrl+S: Save • Esc: Close/Back")}`} />
       </box>
     </box>
   );

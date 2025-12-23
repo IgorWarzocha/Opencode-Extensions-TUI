@@ -28,12 +28,6 @@
     "noPropertyAccessFromIndexSignature": false,
 
     // Local OpenTUI development
-    "baseUrl": ".",
-    "paths": {
-      "@opentui/core": ["./opentui/packages/core/src/index.ts"],
-      "@opentui/react": ["./opentui/packages/react/src/index.ts"],
-      "@opentui/core/*": ["./opentui/packages/core/src/*"],
-      "@opentui/react/*": ["./opentui/packages/react/src/*"]
-    }
+    "baseUrl": "."
   }
 }

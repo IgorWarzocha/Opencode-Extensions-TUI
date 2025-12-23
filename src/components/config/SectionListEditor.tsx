@@ -1,5 +1,5 @@
 import { t, dim, bold, cyan } from "@opentui/core";
-import { useState, useEffect } from "react";
+import { useMemo } from "react";
 import { ocTheme } from "../../theme";
 import { parseObjectSection, toggleBlock, removeItem, type ConfigItem } from "../../utils/config-parser";
 import { ScopedJsonEditor } from "./ScopedJsonEditor";
@@ -11,14 +11,14 @@ interface SectionListEditorProps {
   sectionKey: string;
   onChange: (newRaw: string) => void;
   height: number;
+  editingItem: ConfigItem | null;
+  onEditItem: (item: ConfigItem | null) => void;
 }
 
-export function SectionListEditor({ rawContent, sectionKey, onChange, height }: SectionListEditorProps) {
-  const [items, setItems] = useState<ConfigItem[]>([]);
-  const [editingItem, setEditingItem] = useState<ConfigItem | null>(null);
-
-  useEffect(() => {
-    setItems(parseObjectSection(rawContent, sectionKey));
+export function SectionListEditor({ rawContent, sectionKey, onChange, height, editingItem, onEditItem }: SectionListEditorProps) {
+  // Simple, single-level parsing. No recursion/drill-down.
+  const items = useMemo(() => {
+    return parseObjectSection(rawContent, sectionKey);
   }, [rawContent, sectionKey]);
 
   const handleAction = (action: string, item: ConfigItem) => {
@@ -31,17 +31,17 @@ export function SectionListEditor({ rawContent, sectionKey, onChange, height }: 
       onChange(newRaw);
     } else if (action === "return" || action === "enter") {
       if (item.enabled) {
-        setEditingItem(item);
+        // Direct edit of the item's value
+        onEditItem(item);
       }
-    } else if (action === "escape" && editingItem) {
-        setEditingItem(null);
     }
   };
 
   const { selectedIndex, scrollRow } = useScrollableList({
     items,
     height,
-    onAction: handleAction
+    onAction: handleAction,
+    onSelect: (item) => handleAction("enter", item)
   });
 
   const handleJsonSave = (newData: any) => {
@@ -66,17 +66,20 @@ export function SectionListEditor({ rawContent, sectionKey, onChange, height }: 
       
       lines.splice(editingItem.startLine, (editingItem.endLine - editingItem.startLine) + 1, finalBlock);
       onChange(lines.join('\n'));
-      setEditingItem(null);
+      onEditItem(null);
   };
 
   if (editingItem) {
       let data = {};
       try {
+          // Wrap in braces to make it valid JSONC for parsing
           const wrapped = `{ ${editingItem.raw} }`;
           const obj = parseJSONC(wrapped);
           data = obj[editingItem.key];
       } catch (e) {
-          data = { error: "Could not parse", raw: editingItem.raw };
+          // Fallback if parsing fails (e.g. comments inside that our basic parser didn't strip perfectly?)
+          // Or we can just show empty object or error
+          data = { error: "Could not parse JSON", raw: editingItem.raw };
       }
 
       return (

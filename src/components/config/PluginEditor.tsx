@@ -31,7 +31,8 @@ export function PluginEditor({ rawContent, onChange, height }: PluginEditorProps
   const { selectedIndex, scrollRow } = useScrollableList({
     items,
     height,
-    onAction: handleAction
+    onAction: handleAction,
+    onSelect: (item) => handleAction("space", item)
   });
 
   return (

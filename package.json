@@ -8,7 +8,8 @@
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "@types/marked-terminal": "^6.1.1"
+    "@types/marked-terminal": "^6.1.1",
+    "@types/react": "^19.2.7"
   },
   "peerDependencies": {
     "typescript": "^5"
